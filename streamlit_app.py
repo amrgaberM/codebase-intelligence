@@ -225,7 +225,6 @@ st.markdown("""
         text-transform: uppercase;
     }
     
-    /* Sidebar styling */
     section[data-testid="stSidebar"] {
         background: rgba(15, 15, 35, 0.95);
         border-right: 1px solid rgba(99, 102, 241, 0.1);
@@ -235,7 +234,6 @@ st.markdown("""
         color: #e2e8f0;
     }
     
-    /* Input styling */
     .stTextInput input {
         background: rgba(30, 30, 50, 0.8);
         border: 1px solid rgba(99, 102, 241, 0.3);
@@ -249,7 +247,6 @@ st.markdown("""
         box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
     }
     
-    /* Button styling */
     .stButton > button {
         background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
         color: white;
@@ -271,7 +268,6 @@ st.markdown("""
         color: #a5b4fc;
     }
     
-    /* Chat styling */
     .stChatMessage {
         background: rgba(30, 30, 50, 0.6);
         border: 1px solid rgba(99, 102, 241, 0.1);
@@ -285,19 +281,16 @@ st.markdown("""
         border-radius: 12px;
     }
     
-    /* Slider */
     .stSlider {
         color: #a5b4fc;
     }
     
-    /* Expander */
     .streamlit-expanderHeader {
         background: rgba(99, 102, 241, 0.1);
         border-radius: 8px;
         color: #e2e8f0;
     }
     
-    /* Metrics */
     [data-testid="stMetricValue"] {
         color: #a5b4fc;
     }
@@ -306,17 +299,14 @@ st.markdown("""
         color: #64748b;
     }
     
-    /* Progress bar */
     .stProgress > div > div {
         background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     }
     
-    /* Divider */
     hr {
         border-color: rgba(99, 102, 241, 0.1);
     }
     
-    /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -346,6 +336,9 @@ def clear_database():
         del st.session_state[key]
 
 def index_repository(repo_url):
+    import sys
+    sys.path.insert(0, '.')
+    
     from github_loader import GitHubLoader
     from ast_chunker import ASTChunker
     from hybrid_retriever import HybridRetriever
@@ -453,11 +446,9 @@ with st.sidebar:
 
 # Main content
 if not st.session_state.get("indexed", False):
-    # Landing page
     st.markdown('<h1 class="main-title">CodeLens</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Understand any codebase in seconds with AI-powered intelligence</p>', unsafe_allow_html=True)
     
-    # Features
     st.markdown("""
     <div class="feature-grid">
         <div class="feature-box">
@@ -483,7 +474,6 @@ if not st.session_state.get("indexed", False):
     </div>
     """, unsafe_allow_html=True)
     
-    # How it works
     st.markdown('<h2 class="section-title">How It Works</h2>', unsafe_allow_html=True)
     
     st.markdown("""
@@ -506,7 +496,6 @@ if not st.session_state.get("indexed", False):
     </div>
     """, unsafe_allow_html=True)
     
-    # Example repos
     st.markdown('<h2 class="section-title">Try These Repositories</h2>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
@@ -536,11 +525,9 @@ if not st.session_state.get("indexed", False):
         """, unsafe_allow_html=True)
 
 else:
-    # Chat interface
     st.markdown('<h1 class="chat-header">CodeLens</h1>', unsafe_allow_html=True)
     st.markdown(f'<p class="chat-subheader">Analyzing: {st.session_state.get("repo_name", "")}</p>', unsafe_allow_html=True)
     
-    # Chat messages
     for msg in st.session_state.get("messages", []):
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
@@ -549,7 +536,6 @@ else:
                     for src in msg["sources"]:
                         st.markdown(f'<div class="source-item">{src}</div>', unsafe_allow_html=True)
     
-    # Chat input
     if prompt := st.chat_input("Ask about the codebase..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         
