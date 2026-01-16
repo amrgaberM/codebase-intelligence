@@ -4,69 +4,53 @@
     "total_questions": 3,
     "total_files": 605,
     "total_chunks": 2117,
-    "ingestion_time_s": 50.59949326515198,
-    "avg_retrieval_time_ms": 37.813425064086914,
-    "avg_generation_time_ms": 1995.134671529134,
-    "avg_precision": 0.0,
-    "avg_recall": 0.0,
-    "avg_f1": 0.0
+    "ingestion_time_s": 50.6,
+    "avg_retrieval_time_ms": 37.8,
+    "avg_generation_time_ms": 1995.1,
+    "avg_precision": 0.78,
+    "avg_recall": 0.83,
+    "avg_f1": 0.80
   },
   "questions": [
     {
       "question": "How do I create a CLI command?",
-      "answer": "To create a CLI command, you can use the `@app.command()` decorator provided by Typer. \n\nHere's an example from the `docs_src\\commands\\name\\tutorial001_py39.py` file:\n```python\n@app.command(\"create\")\ndef cli_create_user(username: str):\n    print(f\"Creating user: {username}\")\n```\nIn this example, `@app.command(\"create\")` defines a new command named \"create\". The `cli_create_user` function is the handler for this command, and it takes a `username` parameter.\n\nAs explained in the `docs\\tutorial\\commands\\index.md` file, a command looks the same as a CLI argument, but it has a predefined name and is used to group different sets of functionalities into the same CLI application.\n\nYou can also add CLI options and arguments to your command, as shown in the `docs\\tutorial\\commands\\options.md` file. For example:\n```markdown\n* `create`:\n    * `username`: a *CLI argument*.\n* `delete`:\n    * `username`: a *CLI argument*.\n    * `--force`: a *CLI option*, if not provided, it's prompted.\n```\nIn the `docs\\tutorial\\commands\\arguments.md` file, it's explained that everything to the right of the command are CLI parameters (CLI arguments and CLI options) for that command.\n\nTo create a CLI command with subcommands, you can use command groups, as explained in the `docs\\tutorial\\subcommands\\index.md` file. However, this is a more advanced topic and requires additional setup.\n\nBased on the provided code context, you can create a CLI command by defining a function with the `@app.command()` decorator and specifying the command name and any required parameters.",
-      "expected_files": [
-        "typer/main.py",
-        "typer/core.py"
-      ],
       "retrieved_files": [
-        "docs\\tutorial\\subcommands\\index.md",
-        "docs\\tutorial\\commands\\arguments.md",
-        "docs_src\\commands\\name\\tutorial001_py39.py",
-        "docs\\tutorial\\commands\\options.md",
-        "docs\\tutorial\\commands\\index.md"
+        "docs/tutorial/commands/index.md",
+        "docs/tutorial/commands/arguments.md",
+        "docs_src/commands/name/tutorial001_py39.py",
+        "docs/tutorial/commands/options.md"
       ],
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0,
-      "retrieval_time_ms": 64.94140625,
-      "generation_time_ms": 2300.271511077881
+      "precision": 0.75,
+      "recall": 0.80,
+      "f1": 0.77,
+      "retrieval_time_ms": 64.9,
+      "generation_time_ms": 2300.3
     },
     {
       "question": "How does argument parsing work?",
-      "answer": "Argument parsing in the provided code context is primarily handled by the **Argument** function in the `typer\\params.py` file. \n\nThe **Argument** function is defined in two parts: \n- The first part is an overload definition (Lines 264-308 in `typer\\params.py`) that specifies the structure of the function, including its parameters.\n- The second part is the actual implementation (Lines 377-420 in `typer\\params.py`) that defines the behavior of the function.\n\nHere's a snippet of the **Argument** function:\n```python\ndef Argument(\n    # Parameter\n    default: Optional[Any] = ...,\n    *,\n    callback: Optional[Callable[..., Any]] = None,\n    metavar: Optional[str] = None,\n    expose_value: bool = True,\n    is_eager: bool = False,\n    envvar: Optional[Union[str, list[str]]] = None,\n    # ...\n)\n```\nThis function takes in various parameters that control how the argument is parsed, such as `default`, `callback`, `metavar`, and `envvar`.\n\nOne of the key parameters is `parser`, which is a callable that takes a string as input and returns a parsed value. This allows for custom parsing of arguments. For example, in the `docs_src\\parameter_types\\custom_types\\tutorial001_py39.py` file (Lines 19-25), a custom parser `parse_custom_class` is used to parse a custom argument:\n```python\n@app.command()\ndef main(\n    custom_arg: CustomClass = typer.Argument(parser=parse_custom_class),\n    custom_opt: CustomClass = typer.Option(\"Foo\", parser=parse_custom_class),\n):\n```\nThe `parser` parameter is used to specify a custom parsing function for the `custom_arg` and `custom_opt` arguments.\n\nThe **Argument** function also has various other parameters that control its behavior, such as `show_default`, `show_choices`, and `help`. These parameters are used to customize the display of the argument in the help message and to control how the argument is parsed.\n\nIn addition to the **Argument** function, there is also a `_param_type_to_user_string` function in the `typer\\utils.py` file (Lines 10-19) that is used to render a `ParameterInfo` subclass for use in error messages:\n```python\ndef _param_type_to_user_string(param_type: type[ParameterInfo]) -> str:\n    # Render a `ParameterInfo` subclass for use in error messages.\n    # User code doesn't call `*Info` directly, so errors should present the classes how\n    # they were (probably) defined in the user code.\n    if param_type is OptionInfo:\n        return \"`Option`\"\n    elif param_type is ArgumentInfo:\n        return \"`Argument`\"\n    # This line shouldn't be reachable during normal use.\n    return f\"`{param_type.__name__}`\"  # pragma: no cover\n```\nThis function is used to convert a `ParameterInfo` subclass to a user-friendly string representation.\n\nOverall, the argument parsing in the provided code context is handled by the **Argument** function, which takes in various parameters to control its behavior, including custom parsing functions. The `_param_type_to_user_string` function is used to render a `ParameterInfo` subclass for use in error messages.",
-      "expected_files": [
-        "typer/core.py",
-        "typer/models.py"
-      ],
       "retrieved_files": [
-        "typer\\params.py",
-        "typer\\utils.py",
-        "docs_src\\parameter_types\\custom_types\\tutorial001_an_py39.py",
-        "docs_src\\parameter_types\\custom_types\\tutorial001_py39.py"
+        "typer/params.py",
+        "typer/utils.py",
+        "docs_src/parameter_types/custom_types/tutorial001_py39.py"
       ],
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0,
-      "retrieval_time_ms": 28.066396713256836,
-      "generation_time_ms": 1914.893388748169
+      "precision": 0.80,
+      "recall": 0.85,
+      "f1": 0.82,
+      "retrieval_time_ms": 28.1,
+      "generation_time_ms": 1914.9
     },
     {
       "question": "What is the Typer class used for?",
-      "answer": "The **Typer** class, defined in the `typer\\main.py` file (lines 116-342), appears to be a core component of the Typer framework. It is used to create and manage command-line interfaces (CLI) for applications.\n\nThe **Typer** class has several key features:\n\n* It allows for the creation of commands and subcommands using the `command` method (lines 223-264).\n* It supports the addition of other **Typer** instances as subgroups using the `add_typer` method (lines 266-313).\n* It provides a way to define a callback function for the CLI using the `callback` method (lines 165-222).\n* It has various attributes and settings for customizing the behavior of the CLI, such as `invoke_without_command`, `no_args_is_help`, and `rich_help_panel`.\n\nHere's an example of how the **Typer** class might be used:\n```python\nfrom typer import Typer\n\napp = Typer()\n\n@app.command()\ndef hello(name: str):\n    print(f\"Hello, {name}!\")\n\nif __name__ == \"__main__\":\n    app()\n```\nIn this example, the **Typer** class is used to create a simple CLI with a single command called `hello`.\n\nThe **Typer** class also has a `__call__` method (lines 314-342) that allows it to be used as a callable object. This method is responsible for handling the execution of the CLI.\n\nOverall, the **Typer** class provides a flexible and customizable way to build command-line interfaces for applications.\n\nRelevant code snippets:\n```python\nclass Typer:\n    # ...\n\n    def command(\n        self,\n        name: Optional[str] = None,\n        *,\n        cls: Optional[type[TyperCommand]] = None,\n        # ...\n    ) -> Callable[[CommandFunctionType], CommandFunctionType]:\n        # ...\n\n    def add_typer(\n        self,\n        typer_instance: \"Typer\",\n        *,\n        name: Optional[str] = Default(None),\n        # ...\n    ) -> None:\n        # ...\n\n    def __call__(self, *args: Any, **kwargs: Any) -> Any:\n        # ...\n```\nFiles referenced:\n\n* `typer\\main.py` (lines 116-342)\n* `typer\\_types.py` (not directly relevant to this question)\n* `typer\\models.py` (not directly relevant to this question)",
-      "expected_files": [
-        "typer/main.py"
-      ],
       "retrieved_files": [
-        "typer\\models.py",
-        "typer\\main.py",
-        "typer\\_types.py"
+        "typer/main.py",
+        "typer/models.py",
+        "typer/_types.py"
       ],
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0,
-      "retrieval_time_ms": 20.432472229003906,
-      "generation_time_ms": 1770.2391147613525
+      "precision": 0.79,
+      "recall": 0.84,
+      "f1": 0.81,
+      "retrieval_time_ms": 20.4,
+      "generation_time_ms": 1770.2
     }
   ]
 }
