@@ -28,3 +28,5 @@ Thumbs.db
 
 # Model cache
 .cache/
+
+data/
