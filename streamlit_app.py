@@ -225,6 +225,68 @@ st.markdown("""
         text-transform: uppercase;
     }
     
+    .mode-card {
+        background: rgba(30, 30, 50, 0.8);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .mode-card:hover {
+        border-color: rgba(99, 102, 241, 0.6);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+    }
+    
+    .mode-card.active {
+        border-color: #6366f1;
+        background: rgba(99, 102, 241, 0.15);
+    }
+    
+    .mode-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.75rem;
+        font-size: 1.2rem;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .mode-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 0.25rem;
+    }
+    
+    .mode-desc {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+    
+    .result-box {
+        background: rgba(30, 30, 50, 0.6);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .result-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 1rem;
+    }
+    
     section[data-testid="stSidebar"] {
         background: rgba(15, 15, 35, 0.95);
         border-right: 1px solid rgba(99, 102, 241, 0.1);
@@ -245,6 +307,19 @@ st.markdown("""
     .stTextInput input:focus {
         border-color: #6366f1;
         box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+    
+    .stTextArea textarea {
+        background: rgba(30, 30, 50, 0.8);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 8px;
+        color: #e2e8f0;
+    }
+    
+    .stSelectbox > div > div {
+        background: rgba(30, 30, 50, 0.8);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        color: #e2e8f0;
     }
     
     .stButton > button {
@@ -279,6 +354,25 @@ st.markdown("""
         background: rgba(30, 30, 50, 0.8);
         border: 1px solid rgba(99, 102, 241, 0.2);
         border-radius: 12px;
+    }
+    
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background: transparent;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: rgba(30, 30, 50, 0.6);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        border-radius: 8px;
+        color: #94a3b8;
+        padding: 0.5rem 1rem;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border-color: transparent;
+        color: white;
     }
     
     .stSlider {
@@ -324,6 +418,7 @@ if "retriever" not in st.session_state:
     st.session_state.files_count = 0
     st.session_state.chunks_count = 0
     st.session_state.files = None
+    st.session_state.current_mode = "chat"
 
 def clear_database():
     vectors_path = Path("data/vectors")
@@ -411,6 +506,7 @@ with st.sidebar:
             st.session_state.chunks_count = len(result["chunks"])
             st.session_state.indexed = True
             st.session_state.messages = []
+            st.session_state.current_mode = "chat"
             
             st.rerun()
             
@@ -525,64 +621,241 @@ if not st.session_state.get("indexed", False):
         """, unsafe_allow_html=True)
 
 else:
+    # Indexed state - show feature selection and tools
     st.markdown('<h1 class="chat-header">CodeLens</h1>', unsafe_allow_html=True)
     st.markdown(f'<p class="chat-subheader">Analyzing: {st.session_state.get("repo_name", "")}</p>', unsafe_allow_html=True)
     
-    for msg in st.session_state.get("messages", []):
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-            if msg.get("sources"):
-                with st.expander("View Sources"):
-                    for src in msg["sources"]:
-                        st.markdown(f'<div class="source-item">{src}</div>', unsafe_allow_html=True)
+    # Feature selection tabs
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Chat", "Explain Function", "Find Similar", "Documentation", "Analyze"])
     
-    if prompt := st.chat_input("Ask about the codebase..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
+    with tab1:
+        # Chat interface
+        st.markdown('<p style="color: #94a3b8; margin-bottom: 1rem;">Ask any question about the codebase</p>', unsafe_allow_html=True)
         
-        with st.chat_message("user"):
-            st.markdown(prompt)
+        for msg in st.session_state.get("messages", []):
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+                if msg.get("sources"):
+                    with st.expander("View Sources"):
+                        for src in msg["sources"]:
+                            st.markdown(f'<div class="source-item">{src}</div>', unsafe_allow_html=True)
         
-        with st.chat_message("assistant"):
-            with st.spinner("Analyzing..."):
+        if prompt := st.chat_input("Ask about the codebase..."):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            
+            with st.chat_message("assistant"):
+                with st.spinner("Analyzing..."):
+                    try:
+                        start = time.time()
+                        retriever = st.session_state.get("retriever")
+                        generator = st.session_state.get("generator")
+                        reranker = st.session_state.get("reranker")
+                        
+                        results = retriever.search(prompt, top_k=top_k*2)
+                        
+                        if results and use_reranking:
+                            results = reranker.rerank(prompt, results, top_k=top_k)
+                        elif results:
+                            results = results[:top_k]
+                        
+                        if results:
+                            answer = generator.generate(prompt, results)
+                        else:
+                            answer = "No relevant code found. Try a different question."
+                        
+                        elapsed = time.time() - start
+                    except Exception as e:
+                        answer = f"Error: {str(e)}"
+                        results = []
+                        elapsed = 0
+                
+                st.markdown(answer)
+                
+                sources = []
+                if results:
+                    with st.expander("View Sources"):
+                        for i, r in enumerate(results[:5], 1):
+                            meta = r.get("metadata", {})
+                            src = f"{meta.get('file_path', 'Unknown')} : {meta.get('name', 'Unknown')} ({meta.get('chunk_type', 'code')})"
+                            sources.append(src)
+                            st.markdown(f'<div class="source-item">{i}. {src}</div>', unsafe_allow_html=True)
+                
+                st.caption(f"Response time: {elapsed:.2f}s")
+                
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": answer,
+                    "sources": sources
+                })
+    
+    with tab2:
+        # Explain Function
+        st.markdown('<p style="color: #94a3b8; margin-bottom: 1rem;">Get detailed explanation of any function or class</p>', unsafe_allow_html=True)
+        
+        func_name = st.text_input("Function or class name", placeholder="e.g., parse_arguments, UserModel")
+        
+        if st.button("Explain", key="explain_btn"):
+            if func_name:
+                with st.spinner("Analyzing function..."):
+                    try:
+                        retriever = st.session_state.get("retriever")
+                        generator = st.session_state.get("generator")
+                        reranker = st.session_state.get("reranker")
+                        
+                        query = f"function {func_name} implementation"
+                        results = retriever.search(query, top_k=10)
+                        
+                        if results and use_reranking:
+                            results = reranker.rerank(query, results, top_k=5)
+                        
+                        if results:
+                            explain_prompt = f"Explain the function/class '{func_name}' in detail. Include: purpose, parameters, return value, and how it works step by step."
+                            answer = generator.generate(explain_prompt, results)
+                            
+                            st.markdown(f'<div class="result-box"><div class="result-title">Explanation: {func_name}</div></div>', unsafe_allow_html=True)
+                            st.markdown(answer)
+                            
+                            with st.expander("View Source Code"):
+                                for r in results[:3]:
+                                    meta = r.get("metadata", {})
+                                    st.markdown(f"**{meta.get('file_path', '')}** (lines {meta.get('start_line', '?')}-{meta.get('end_line', '?')})")
+                                    st.code(r.get("content", ""), language="python")
+                        else:
+                            st.warning("Function not found in codebase.")
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+            else:
+                st.warning("Please enter a function name.")
+    
+    with tab3:
+        # Find Similar Code
+        st.markdown('<p style="color: #94a3b8; margin-bottom: 1rem;">Find similar code patterns in the codebase</p>', unsafe_allow_html=True)
+        
+        code_snippet = st.text_area("Paste code snippet", placeholder="def example():\n    pass", height=150)
+        
+        if st.button("Find Similar", key="similar_btn"):
+            if code_snippet:
+                with st.spinner("Searching for similar code..."):
+                    try:
+                        retriever = st.session_state.get("retriever")
+                        reranker = st.session_state.get("reranker")
+                        
+                        results = retriever.search(code_snippet, top_k=10)
+                        
+                        if results and use_reranking:
+                            results = reranker.rerank(code_snippet, results, top_k=5)
+                        
+                        if results:
+                            st.markdown('<div class="result-title">Similar Code Found</div>', unsafe_allow_html=True)
+                            
+                            for i, r in enumerate(results[:5], 1):
+                                meta = r.get("metadata", {})
+                                score = r.get("score", 0)
+                                
+                                with st.expander(f"{i}. {meta.get('file_path', 'Unknown')} - {meta.get('name', 'Unknown')} (Score: {score:.3f})"):
+                                    st.code(r.get("content", ""), language=meta.get("language", "python"))
+                        else:
+                            st.warning("No similar code found.")
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+            else:
+                st.warning("Please paste a code snippet.")
+    
+    with tab4:
+        # Generate Documentation
+        st.markdown('<p style="color: #94a3b8; margin-bottom: 1rem;">Auto-generate documentation for files</p>', unsafe_allow_html=True)
+        
+        # Get list of files
+        files = st.session_state.get("files", [])
+        file_paths = [f.path for f in files] if files else []
+        
+        selected_file = st.selectbox("Select a file", file_paths if file_paths else ["No files available"])
+        
+        if st.button("Generate Docs", key="docs_btn"):
+            if selected_file and selected_file != "No files available":
+                with st.spinner("Generating documentation..."):
+                    try:
+                        retriever = st.session_state.get("retriever")
+                        generator = st.session_state.get("generator")
+                        
+                        query = f"file {selected_file}"
+                        results = retriever.search(query, top_k=15)
+                        
+                        file_results = [r for r in results if r.get("metadata", {}).get("file_path") == selected_file]
+                        
+                        if file_results:
+                            doc_prompt = f"Generate comprehensive documentation for the file '{selected_file}'. Include: overview, classes, functions, parameters, and usage examples."
+                            docs = generator.generate(doc_prompt, file_results)
+                            
+                            st.markdown(f'<div class="result-title">Documentation: {selected_file}</div>', unsafe_allow_html=True)
+                            st.markdown(docs)
+                        else:
+                            st.warning("Could not find file content.")
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+    
+    with tab5:
+        # Analyze Codebase
+        st.markdown('<p style="color: #94a3b8; margin-bottom: 1rem;">Get high-level analysis of the codebase</p>', unsafe_allow_html=True)
+        
+        if st.button("Run Analysis", key="analyze_btn"):
+            with st.spinner("Analyzing codebase..."):
                 try:
-                    start = time.time()
-                    retriever = st.session_state.get("retriever")
-                    generator = st.session_state.get("generator")
-                    reranker = st.session_state.get("reranker")
+                    files = st.session_state.get("files", [])
+                    chunks_count = st.session_state.get("chunks_count", 0)
                     
-                    results = retriever.search(prompt, top_k=top_k*2)
+                    # Collect stats
+                    languages = {}
+                    file_types = {}
                     
-                    if results and use_reranking:
-                        results = reranker.rerank(prompt, results, top_k=top_k)
-                    elif results:
-                        results = results[:top_k]
+                    for f in files:
+                        lang = getattr(f, 'language', 'unknown')
+                        ext = getattr(f, 'extension', 'unknown')
+                        languages[lang] = languages.get(lang, 0) + 1
+                        file_types[ext] = file_types.get(ext, 0) + 1
                     
-                    if results:
-                        answer = generator.generate(prompt, results)
-                    else:
-                        answer = "No relevant code found for your question. Please try rephrasing or ask about a different aspect of the codebase."
+                    col1, col2, col3 = st.columns(3)
                     
-                    elapsed = time.time() - start
+                    with col1:
+                        st.markdown(f"""
+                        <div class="stat-box">
+                            <div class="stat-value">{len(files)}</div>
+                            <div class="stat-label">Total Files</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        st.markdown(f"""
+                        <div class="stat-box">
+                            <div class="stat-value">{chunks_count}</div>
+                            <div class="stat-label">Code Chunks</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col3:
+                        st.markdown(f"""
+                        <div class="stat-box">
+                            <div class="stat-value">{len(languages)}</div>
+                            <div class="stat-label">Languages</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    st.markdown("---")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("**Languages**")
+                        for lang, count in sorted(languages.items(), key=lambda x: x[1], reverse=True)[:10]:
+                            st.markdown(f'<div class="source-item">{lang}: {count} files</div>', unsafe_allow_html=True)
+                    
+                    with col2:
+                        st.markdown("**File Types**")
+                        for ext, count in sorted(file_types.items(), key=lambda x: x[1], reverse=True)[:10]:
+                            st.markdown(f'<div class="source-item">{ext}: {count} files</div>', unsafe_allow_html=True)
+                    
                 except Exception as e:
-                    answer = f"Error: {str(e)}"
-                    results = []
-                    elapsed = 0
-            
-            st.markdown(answer)
-            
-            sources = []
-            if results:
-                with st.expander("View Sources"):
-                    for i, r in enumerate(results[:5], 1):
-                        meta = r.get("metadata", {})
-                        src = f"{meta.get('file_path', 'Unknown')} : {meta.get('name', 'Unknown')} ({meta.get('chunk_type', 'code')})"
-                        sources.append(src)
-                        st.markdown(f'<div class="source-item">{i}. {src}</div>', unsafe_allow_html=True)
-            
-            st.caption(f"Response time: {elapsed:.2f}s")
-            
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": answer,
-                "sources": sources
-            })
+                    st.error(f"Error: {str(e)}")
