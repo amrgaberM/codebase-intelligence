@@ -4,7 +4,6 @@ import shutil
 from pathlib import Path
 import sys
 
-# Add src to path
 sys.path.insert(0, str(Path(__file__).parent))
 
 st.set_page_config(
@@ -19,337 +18,57 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
-    * {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    
-    .stApp {
-        background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%);
-    }
-    
-    .main-title {
-        font-size: 3.5rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-align: center;
-        margin-bottom: 0.5rem;
-        letter-spacing: -0.02em;
-    }
-    
-    .sub-title {
-        font-size: 1.25rem;
-        color: #94a3b8;
-        text-align: center;
-        margin-bottom: 3rem;
-        font-weight: 400;
-    }
-    
-    .feature-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.5rem;
-        margin: 2rem 0;
-    }
-    
-    .feature-box {
-        background: rgba(30, 30, 50, 0.8);
-        border: 1px solid rgba(99, 102, 241, 0.2);
-        border-radius: 16px;
-        padding: 2rem 1.5rem;
-        text-align: center;
-        transition: all 0.3s ease;
-    }
-    
-    .feature-box:hover {
-        border-color: rgba(99, 102, 241, 0.5);
-        transform: translateY(-4px);
-        box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
-    }
-    
-    .feature-icon {
-        width: 48px;
-        height: 48px;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1rem;
-        font-size: 1.5rem;
-        color: white;
-    }
-    
-    .feature-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #e2e8f0;
-        margin-bottom: 0.5rem;
-    }
-    
-    .feature-desc {
-        font-size: 0.875rem;
-        color: #64748b;
-        line-height: 1.5;
-    }
-    
-    .step-container {
-        display: flex;
-        justify-content: center;
-        gap: 2rem;
-        margin: 3rem 0;
-    }
-    
-    .step-box {
-        background: rgba(30, 30, 50, 0.6);
-        border: 1px solid rgba(99, 102, 241, 0.15);
-        border-radius: 16px;
-        padding: 2rem;
-        text-align: center;
-        flex: 1;
-        max-width: 300px;
-    }
-    
-    .step-number {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1rem;
-        font-weight: 700;
-        color: white;
-        font-size: 1.1rem;
-    }
-    
-    .step-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #e2e8f0;
-        margin-bottom: 0.5rem;
-    }
-    
-    .step-desc {
-        font-size: 0.875rem;
-        color: #64748b;
-    }
-    
-    .repo-card {
-        background: rgba(30, 30, 50, 0.6);
-        border: 1px solid rgba(99, 102, 241, 0.15);
-        border-radius: 12px;
-        padding: 1.25rem;
-        text-align: center;
-        transition: all 0.2s ease;
-    }
-    
-    .repo-card:hover {
-        border-color: rgba(99, 102, 241, 0.4);
-    }
-    
-    .repo-url {
-        font-family: monospace;
-        font-size: 0.8rem;
-        color: #a5b4fc;
-        background: rgba(99, 102, 241, 0.1);
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        margin-bottom: 0.5rem;
-        word-break: break-all;
-    }
-    
-    .repo-label {
-        font-size: 0.75rem;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    
-    .section-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #e2e8f0;
-        text-align: center;
-        margin: 3rem 0 2rem;
-    }
-    
-    .chat-header {
-        font-size: 2rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0.25rem;
-    }
-    
-    .chat-subheader {
-        font-size: 1rem;
-        color: #64748b;
-        margin-bottom: 2rem;
-    }
-    
-    .source-item {
-        background: rgba(99, 102, 241, 0.1);
-        border-left: 3px solid #6366f1;
-        border-radius: 0 8px 8px 0;
-        padding: 0.75rem 1rem;
-        margin: 0.5rem 0;
-        font-family: monospace;
-        font-size: 0.8rem;
-        color: #cbd5e1;
-    }
-    
-    .stats-container {
-        display: flex;
-        gap: 1rem;
-        margin: 1rem 0;
-    }
-    
-    .stat-box {
-        background: rgba(99, 102, 241, 0.1);
-        border-radius: 8px;
-        padding: 1rem;
-        text-align: center;
-        flex: 1;
-    }
-    
-    .stat-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #a5b4fc;
-    }
-    
-    .stat-label {
-        font-size: 0.75rem;
-        color: #64748b;
-        text-transform: uppercase;
-    }
-    
-    .result-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #e2e8f0;
-        margin-bottom: 1rem;
-    }
-    
-    section[data-testid="stSidebar"] {
-        background: rgba(15, 15, 35, 0.95);
-        border-right: 1px solid rgba(99, 102, 241, 0.1);
-    }
-    
-    section[data-testid="stSidebar"] .stMarkdown {
-        color: #e2e8f0;
-    }
-    
-    .stTextInput input {
-        background: rgba(30, 30, 50, 0.8);
-        border: 1px solid rgba(99, 102, 241, 0.3);
-        border-radius: 8px;
-        color: #e2e8f0;
-        padding: 0.75rem 1rem;
-    }
-    
-    .stTextInput input:focus {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-    }
-    
-    .stTextArea textarea {
-        background: rgba(30, 30, 50, 0.8);
-        border: 1px solid rgba(99, 102, 241, 0.3);
-        border-radius: 8px;
-        color: #e2e8f0;
-    }
-    
-    .stSelectbox > div > div {
-        background: rgba(30, 30, 50, 0.8);
-        border: 1px solid rgba(99, 102, 241, 0.3);
-        color: #e2e8f0;
-    }
-    
-    .stButton > button {
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 0.5rem 1.5rem;
-        font-weight: 600;
-        transition: all 0.2s ease;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
-    }
-    
-    .stButton > button[kind="secondary"] {
-        background: transparent;
-        border: 1px solid rgba(99, 102, 241, 0.5);
-        color: #a5b4fc;
-    }
-    
-    .stChatMessage {
-        background: rgba(30, 30, 50, 0.6);
-        border: 1px solid rgba(99, 102, 241, 0.1);
-        border-radius: 12px;
-        padding: 1rem;
-    }
-    
-    .stChatInputContainer {
-        background: rgba(30, 30, 50, 0.8);
-        border: 1px solid rgba(99, 102, 241, 0.2);
-        border-radius: 12px;
-    }
-    
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background: transparent;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        background: rgba(30, 30, 50, 0.6);
-        border: 1px solid rgba(99, 102, 241, 0.2);
-        border-radius: 8px;
-        color: #94a3b8;
-        padding: 0.5rem 1rem;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        border-color: transparent;
-        color: white;
-    }
-    
-    .stSlider {
-        color: #a5b4fc;
-    }
-    
-    .streamlit-expanderHeader {
-        background: rgba(99, 102, 241, 0.1);
-        border-radius: 8px;
-        color: #e2e8f0;
-    }
-    
-    [data-testid="stMetricValue"] {
-        color: #a5b4fc;
-    }
-    
-    [data-testid="stMetricLabel"] {
-        color: #64748b;
-    }
-    
-    .stProgress > div > div {
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    }
-    
-    hr {
-        border-color: rgba(99, 102, 241, 0.1);
-    }
-    
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    .stApp { background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%); }
+    .main-title { font-size: 3.5rem; font-weight: 700; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-align: center; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+    .sub-title { font-size: 1.25rem; color: #94a3b8; text-align: center; margin-bottom: 3rem; font-weight: 400; }
+    .feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin: 2rem 0; }
+    .feature-box { background: rgba(30, 30, 50, 0.8); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 16px; padding: 2rem 1.5rem; text-align: center; transition: all 0.3s ease; }
+    .feature-box:hover { border-color: rgba(99, 102, 241, 0.5); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15); }
+    .feature-icon { width: 48px; height: 48px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; color: white; }
+    .feature-title { font-size: 1rem; font-weight: 600; color: #e2e8f0; margin-bottom: 0.5rem; }
+    .feature-desc { font-size: 0.875rem; color: #64748b; line-height: 1.5; }
+    .step-container { display: flex; justify-content: center; gap: 2rem; margin: 3rem 0; }
+    .step-box { background: rgba(30, 30, 50, 0.6); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 16px; padding: 2rem; text-align: center; flex: 1; max-width: 300px; }
+    .step-number { width: 40px; height: 40px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: 700; color: white; font-size: 1.1rem; }
+    .step-title { font-size: 1.1rem; font-weight: 600; color: #e2e8f0; margin-bottom: 0.5rem; }
+    .step-desc { font-size: 0.875rem; color: #64748b; }
+    .repo-card { background: rgba(30, 30, 50, 0.6); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 12px; padding: 1.25rem; text-align: center; transition: all 0.2s ease; }
+    .repo-card:hover { border-color: rgba(99, 102, 241, 0.4); }
+    .repo-url { font-family: monospace; font-size: 0.8rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.1); padding: 0.5rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; word-break: break-all; }
+    .repo-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+    .section-title { font-size: 1.5rem; font-weight: 600; color: #e2e8f0; text-align: center; margin: 3rem 0 2rem; }
+    .chat-header { font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+    .chat-subheader { font-size: 1rem; color: #64748b; margin-bottom: 2rem; }
+    .source-item { background: rgba(99, 102, 241, 0.1); border-left: 3px solid #6366f1; border-radius: 0 8px 8px 0; padding: 0.75rem 1rem; margin: 0.5rem 0; font-family: monospace; font-size: 0.8rem; color: #cbd5e1; }
+    .stats-container { display: flex; gap: 1rem; margin: 1rem 0; }
+    .stat-box { background: rgba(99, 102, 241, 0.1); border-radius: 8px; padding: 1rem; text-align: center; flex: 1; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: #a5b4fc; }
+    .stat-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; }
+    .result-title { font-size: 1.1rem; font-weight: 600; color: #e2e8f0; margin-bottom: 1rem; }
+    .estimate-box { background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 1rem; margin: 1rem 0; text-align: center; }
+    .estimate-time { font-size: 1.25rem; font-weight: 600; color: #a5b4fc; }
+    .estimate-label { font-size: 0.75rem; color: #94a3b8; }
+    section[data-testid="stSidebar"] { background: rgba(15, 15, 35, 0.95); border-right: 1px solid rgba(99, 102, 241, 0.1); }
+    section[data-testid="stSidebar"] .stMarkdown { color: #e2e8f0; }
+    .stTextInput input { background: rgba(30, 30, 50, 0.8); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: #e2e8f0; padding: 0.75rem 1rem; }
+    .stTextInput input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+    .stTextArea textarea { background: rgba(30, 30, 50, 0.8); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: #e2e8f0; }
+    .stSelectbox > div > div { background: rgba(30, 30, 50, 0.8); border: 1px solid rgba(99, 102, 241, 0.3); color: #e2e8f0; }
+    .stButton > button { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-weight: 600; transition: all 0.2s ease; }
+    .stButton > button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4); }
+    .stButton > button[kind="secondary"] { background: transparent; border: 1px solid rgba(99, 102, 241, 0.5); color: #a5b4fc; }
+    .stChatMessage { background: rgba(30, 30, 50, 0.6); border: 1px solid rgba(99, 102, 241, 0.1); border-radius: 12px; padding: 1rem; }
+    .stChatInputContainer { background: rgba(30, 30, 50, 0.8); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; }
+    .stTabs [data-baseweb="tab-list"] { gap: 8px; background: transparent; }
+    .stTabs [data-baseweb="tab"] { background: rgba(30, 30, 50, 0.6); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; color: #94a3b8; padding: 0.5rem 1rem; }
+    .stTabs [aria-selected="true"] { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-color: transparent; color: white; }
+    .stSlider { color: #a5b4fc; }
+    .streamlit-expanderHeader { background: rgba(99, 102, 241, 0.1); border-radius: 8px; color: #e2e8f0; }
+    [data-testid="stMetricValue"] { color: #a5b4fc; }
+    [data-testid="stMetricLabel"] { color: #64748b; }
+    .stProgress > div > div { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); }
+    hr { border-color: rgba(99, 102, 241, 0.1); }
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -368,6 +87,8 @@ if "retriever" not in st.session_state:
     st.session_state.files_count = 0
     st.session_state.chunks_count = 0
     st.session_state.files = None
+    st.session_state.show_estimate = False
+    st.session_state.estimated_time = 0
 
 def clear_database():
     vectors_path = Path("data/vectors")
@@ -379,22 +100,75 @@ def clear_database():
     for key in list(st.session_state.keys()):
         del st.session_state[key]
 
-def index_repository(repo_url):
+def estimate_time(repo_url: str) -> dict:
+    """Estimate indexing time based on repo size."""
+    import requests
+    
+    try:
+        # Parse owner/repo from URL
+        parts = repo_url.rstrip('/').rstrip('.git').split('/')
+        owner, repo = parts[-2], parts[-1]
+        
+        # Get repo info from GitHub API
+        api_url = f"https://api.github.com/repos/{owner}/{repo}"
+        response = requests.get(api_url, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            size_kb = data.get('size', 0)  # Size in KB
+            
+            # Estimate files (rough: 1 file per 5KB average)
+            est_files = max(10, size_kb // 5)
+            
+            # Estimate chunks (roughly 3-5 chunks per file)
+            est_chunks = est_files * 4
+            
+            # Time estimate: ~0.3 seconds per chunk for embedding
+            est_seconds = int(est_chunks * 0.3) + 10  # +10 for cloning
+            
+            return {
+                "success": True,
+                "repo_name": data.get('full_name', f"{owner}/{repo}"),
+                "size_kb": size_kb,
+                "stars": data.get('stargazers_count', 0),
+                "est_files": est_files,
+                "est_chunks": est_chunks,
+                "est_seconds": est_seconds,
+                "est_time_str": f"{est_seconds // 60}m {est_seconds % 60}s" if est_seconds >= 60 else f"{est_seconds}s"
+            }
+    except Exception as e:
+        pass
+    
+    return {"success": False}
+
+def index_repository(repo_url, progress_callback=None):
     from src.ingestion import GitHubLoader
     from src.chunking import ASTChunker
     from src.retrieval import HybridRetriever, LightweightReranker
     from src.generation import CodeGenerator, CodeIntelligence
     
+    if progress_callback:
+        progress_callback(10, "Cloning repository...")
+    
     loader = GitHubLoader()
     files = loader.clone_repo(repo_url)
     
+    if progress_callback:
+        progress_callback(30, f"Parsing {len(files)} files...")
+    
     chunker = ASTChunker()
     chunks = chunker.chunk_files(files)
+    
+    if progress_callback:
+        progress_callback(50, f"Indexing {len(chunks)} chunks...")
     
     retriever = HybridRetriever()
     generator = CodeGenerator()
     reranker = LightweightReranker()
     retriever.index(chunks, files)
+    
+    if progress_callback:
+        progress_callback(90, "Building intelligence...")
     
     intelligence = CodeIntelligence(retriever, generator)
     
@@ -422,6 +196,30 @@ with st.sidebar:
         label_visibility="collapsed"
     )
     
+    # Estimate button
+    if repo_url and not st.session_state.get("indexed", False):
+        if st.button("Estimate Time", key="estimate_btn", use_container_width=True):
+            with st.spinner("Checking repository..."):
+                estimate = estimate_time(repo_url)
+                if estimate["success"]:
+                    st.session_state.show_estimate = True
+                    st.session_state.estimate_data = estimate
+                else:
+                    st.warning("Could not fetch repo info. Try indexing directly.")
+        
+        # Show estimate if available
+        if st.session_state.get("show_estimate", False) and "estimate_data" in st.session_state:
+            est = st.session_state.estimate_data
+            st.markdown(f"""
+            <div class="estimate-box">
+                <div class="estimate-label">Estimated Time</div>
+                <div class="estimate-time">{est['est_time_str']}</div>
+                <div class="estimate-label" style="margin-top: 0.5rem;">
+                    ~{est['est_files']} files | ~{est['est_chunks']} chunks | {est['size_kb']} KB
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
     col1, col2 = st.columns(2)
     with col1:
         index_btn = st.button("Index", type="primary", use_container_width=True)
@@ -436,14 +234,22 @@ with st.sidebar:
         try:
             clear_database()
             
-            progress_bar = st.progress(0, text="Initializing...")
-            progress_bar.progress(10, text="Cloning repository...")
-            progress_bar.progress(30, text="Parsing files...")
-            result = index_repository(repo_url)
-            progress_bar.progress(90, text="Finalizing...")
-            progress_bar.progress(100, text="Complete")
-            time.sleep(0.3)
+            progress_bar = st.progress(0, text="Starting...")
+            status_text = st.empty()
+            
+            def update_progress(pct, text):
+                progress_bar.progress(pct, text=text)
+                status_text.markdown(f'<p style="color: #94a3b8; font-size: 0.8rem;">{text}</p>', unsafe_allow_html=True)
+            
+            start_time = time.time()
+            result = index_repository(repo_url, update_progress)
+            elapsed = time.time() - start_time
+            
+            progress_bar.progress(100, text="Complete!")
+            status_text.markdown(f'<p style="color: #10b981; font-size: 0.8rem;">Completed in {elapsed:.1f}s</p>', unsafe_allow_html=True)
+            time.sleep(1)
             progress_bar.empty()
+            status_text.empty()
             
             st.session_state.files = result["files"]
             st.session_state.retriever = result["retriever"]
@@ -455,6 +261,7 @@ with st.sidebar:
             st.session_state.chunks_count = len(result["chunks"])
             st.session_state.indexed = True
             st.session_state.messages = []
+            st.session_state.show_estimate = False
             
             st.rerun()
             
@@ -781,4 +588,3 @@ else:
                                     st.markdown(f'<div class="source-item">{call["file"]} (line {call["line"]})</div>', unsafe_allow_html=True)
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
-
