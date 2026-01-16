@@ -6,7 +6,7 @@ import shutil
 
 import chromadb
 
-from logger import logger
+from src.utils.logger import logger
 
 
 class VectorStore:
@@ -26,7 +26,6 @@ class VectorStore:
         if vectors_path.exists():
             shutil.rmtree(vectors_path, ignore_errors=True)
         
-        # Lazy load embedder
         self._embedder = embedder
         self._client = None
         self._collection = None
@@ -62,7 +61,6 @@ class VectorStore:
         
         logger.info(f"Adding {len(chunks)} chunks to vector store")
         
-        # Process in smaller batches
         for i in range(0, len(chunks), batch_size):
             batch = chunks[i:i + batch_size]
             
@@ -70,10 +68,8 @@ class VectorStore:
             documents = [chunk.to_embedding_text() for chunk in batch]
             metadatas = [self._prepare_metadata(chunk) for chunk in batch]
             
-            # Generate embeddings
             embeddings = self.embedder.embed_documents(documents)
             
-            # Add to collection
             self.collection.add(
                 ids=ids,
                 embeddings=embeddings.tolist(),
