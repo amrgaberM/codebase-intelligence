@@ -2,6 +2,10 @@
 import time
 import shutil
 from pathlib import Path
+import sys
+
+# Add src to path
+sys.path.insert(0, str(Path(__file__).parent))
 
 st.set_page_config(
     page_title="CodeLens - AI Code Intelligence",
@@ -148,7 +152,7 @@ st.markdown("""
     }
     
     .repo-url {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: monospace;
         font-size: 0.8rem;
         color: #a5b4fc;
         background: rgba(99, 102, 241, 0.1);
@@ -194,7 +198,7 @@ st.markdown("""
         border-radius: 0 8px 8px 0;
         padding: 0.75rem 1rem;
         margin: 0.5rem 0;
-        font-family: 'JetBrains Mono', monospace;
+        font-family: monospace;
         font-size: 0.8rem;
         color: #cbd5e1;
     }
@@ -376,15 +380,10 @@ def clear_database():
         del st.session_state[key]
 
 def index_repository(repo_url):
-    import sys
-    sys.path.insert(0, '.')
-    
-    from github_loader import GitHubLoader
-    from ast_chunker import ASTChunker
-    from hybrid_retriever import HybridRetriever
-    from reranker import LightweightReranker
-    from generator import CodeGenerator
-    from code_intelligence import CodeIntelligence
+    from src.ingestion import GitHubLoader
+    from src.chunking import ASTChunker
+    from src.retrieval import HybridRetriever, LightweightReranker
+    from src.generation import CodeGenerator, CodeIntelligence
     
     loader = GitHubLoader()
     files = loader.clone_repo(repo_url)
@@ -438,10 +437,8 @@ with st.sidebar:
             clear_database()
             
             progress_bar = st.progress(0, text="Initializing...")
-            
             progress_bar.progress(20, text="Cloning repository...")
             result = index_repository(repo_url)
-            
             progress_bar.progress(100, text="Complete")
             time.sleep(0.3)
             progress_bar.empty()
@@ -498,7 +495,7 @@ if not st.session_state.get("indexed", False):
     <div class="feature-grid">
         <div class="feature-box">
             <div class="feature-icon">Q</div>
-            <div class="feature-title">Natural Language Q&A</div>
+            <div class="feature-title">Natural Language Q and A</div>
             <div class="feature-desc">Ask questions about code in plain English and get precise answers</div>
         </div>
         <div class="feature-box">
@@ -573,7 +570,7 @@ else:
     st.markdown('<h1 class="chat-header">CodeLens</h1>', unsafe_allow_html=True)
     st.markdown(f'<p class="chat-subheader">Analyzing: {st.session_state.get("repo_name", "")}</p>', unsafe_allow_html=True)
     
-    # Feature selection tabs
+    # Feature tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["Chat", "Explain Function", "Find Similar", "Documentation", "Analyze"])
     
     with tab1:
@@ -656,7 +653,6 @@ else:
                         else:
                             st.markdown(f'<div class="result-title">Explanation: {result["function_name"]}</div>', unsafe_allow_html=True)
                             st.markdown(f'**File:** {result["file_path"]} (lines {result.get("start_line", "?")}-{result.get("end_line", "?")})')
-                            
                             st.markdown("---")
                             st.markdown(result["explanation"])
                             
@@ -674,7 +670,7 @@ else:
         
         if st.button("Find Similar", key="similar_btn"):
             if code_snippet:
-                with st.spinner("Searching for similar code..."):
+                with st.spinner("Searching..."):
                     try:
                         intelligence = st.session_state.get("intelligence")
                         results = intelligence.find_similar_code(code_snippet, top_k=5)
@@ -720,11 +716,10 @@ else:
         
         with col1:
             if st.button("Analyze Codebase", key="analyze_btn", use_container_width=True):
-                with st.spinner("Analyzing codebase..."):
+                with st.spinner("Analyzing..."):
                     try:
                         intelligence = st.session_state.get("intelligence")
                         stats = intelligence.analyze_codebase()
-                        
                         st.session_state.codebase_stats = stats
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
@@ -733,40 +728,20 @@ else:
             if st.button("Find Usages", key="usage_btn", use_container_width=True):
                 st.session_state.show_usage_input = True
         
-        # Show analysis results
         if "codebase_stats" in st.session_state:
             stats = st.session_state.codebase_stats
             
             c1, c2, c3 = st.columns(3)
-            
             with c1:
-                st.markdown(f"""
-                <div class="stat-box">
-                    <div class="stat-value">{stats.get('total_files', 0)}</div>
-                    <div class="stat-label">Total Files</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
+                st.metric("Total Files", stats.get('total_files', 0))
             with c2:
-                st.markdown(f"""
-                <div class="stat-box">
-                    <div class="stat-value">{stats.get('total_chunks', 0)}</div>
-                    <div class="stat-label">Code Chunks</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
+                st.metric("Code Chunks", stats.get('total_chunks', 0))
             with c3:
-                st.markdown(f"""
-                <div class="stat-box">
-                    <div class="stat-value">{len(stats.get('classes', []))}</div>
-                    <div class="stat-label">Classes</div>
-                </div>
-                """, unsafe_allow_html=True)
+                st.metric("Classes", len(stats.get('classes', [])))
             
             st.markdown("---")
             
             c1, c2 = st.columns(2)
-            
             with c1:
                 st.markdown("**Classes**")
                 for cls in stats.get("classes", [])[:10]:
@@ -777,7 +752,6 @@ else:
                 for func in stats.get("functions", [])[:10]:
                     st.markdown(f'<div class="source-item">{func["name"]} - {func["file"]}</div>', unsafe_allow_html=True)
         
-        # Show usage finder
         if st.session_state.get("show_usage_input", False):
             st.markdown("---")
             usage_name = st.text_input("Enter function/class name to find usages", key="usage_input")
@@ -798,11 +772,6 @@ else:
                                 st.markdown("**Definition:**")
                                 d = usage_data["definition"]
                                 st.markdown(f'<div class="source-item">{d["file"]} (line {d["line"]})</div>', unsafe_allow_html=True)
-                            
-                            if usage_data.get("imports"):
-                                st.markdown("**Imports:**")
-                                for imp in usage_data["imports"][:5]:
-                                    st.markdown(f'<div class="source-item">{imp["file"]} (line {imp["line"]})</div>', unsafe_allow_html=True)
                             
                             if usage_data.get("calls"):
                                 st.markdown("**Calls:**")
