@@ -50,9 +50,7 @@ class VectorStore:
     def client(self) -> chromadb.ClientAPI:
         """Lazy load ChromaDB client."""
         if self._client is None:
-            self._client = chromadb.PersistentClient(
-                path=self.persist_directory,
-            )
+            self._client = chromadb.EphemeralClient()
         return self._client
     
     @property
