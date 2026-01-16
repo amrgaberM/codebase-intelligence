@@ -1,14 +1,12 @@
-"""Vector store implementation using ChromaDB."""
+﻿"""Vector store implementation using ChromaDB."""
 
 from pathlib import Path
 from typing import Dict, List, Optional, Any
-import json
+import shutil
 
 import chromadb
 
-from ..chunking import CodeChunk
-from ..embeddings import CodeEmbedder
-from ..utils import config, logger
+from logger import logger
 
 
 class VectorStore:
@@ -18,69 +16,56 @@ class VectorStore:
         self,
         collection_name: Optional[str] = None,
         persist_directory: Optional[str] = None,
-        embedder: Optional[CodeEmbedder] = None,
+        embedder = None,
     ):
-        """Initialize vector store.
+        self.collection_name = collection_name or "codebase"
+        self.persist_directory = persist_directory or "./data/vectors"
         
-        Args:
-            collection_name: Name for the ChromaDB collection
-            persist_directory: Directory to persist the database
-            embedder: Embedder instance for generating embeddings
-        """
-        self.collection_name = collection_name or config.get(
-            "vector_store.collection_name", "codebase"
-        )
-        self.persist_directory = persist_directory or config.get(
-            "vector_store.persist_directory", "./data/vectors"
-        )
+        # Clear old data
+        vectors_path = Path(self.persist_directory)
+        if vectors_path.exists():
+            shutil.rmtree(vectors_path, ignore_errors=True)
         
-        # Ensure directory exists
-        Path(self.persist_directory).mkdir(parents=True, exist_ok=True)
-        
-        # Initialize embedder
-        self.embedder = embedder or CodeEmbedder()
-        
-        # Initialize ChromaDB
+        # Lazy load embedder
+        self._embedder = embedder
         self._client = None
         self._collection = None
         
         logger.info(f"VectorStore initialized: {self.collection_name}")
     
     @property
+    def embedder(self):
+        if self._embedder is None:
+            from src.embeddings import CodeEmbedder
+            self._embedder = CodeEmbedder()
+        return self._embedder
+    
+    @property
     def client(self) -> chromadb.ClientAPI:
-        """Lazy load ChromaDB client."""
         if self._client is None:
             self._client = chromadb.EphemeralClient()
         return self._client
     
     @property
     def collection(self) -> chromadb.Collection:
-        """Get or create collection."""
         if self._collection is None:
             self._collection = self.client.get_or_create_collection(
                 name=self.collection_name,
-                metadata={"hnsw:space": "cosine"}  # Use cosine similarity
+                metadata={"hnsw:space": "cosine"}
             )
         return self._collection
     
-    def add_chunks(self, chunks: List[CodeChunk], batch_size: int = 100) -> None:
-        """Add chunks to the vector store.
-        
-        Args:
-            chunks: List of CodeChunk objects
-            batch_size: Number of chunks to process at once
-        """
+    def add_chunks(self, chunks: List, batch_size: int = 50) -> None:
         if not chunks:
             logger.warning("No chunks to add")
             return
         
         logger.info(f"Adding {len(chunks)} chunks to vector store")
         
-        # Process in batches
+        # Process in smaller batches
         for i in range(0, len(chunks), batch_size):
             batch = chunks[i:i + batch_size]
             
-            # Prepare data
             ids = [chunk.chunk_id for chunk in batch]
             documents = [chunk.to_embedding_text() for chunk in batch]
             metadatas = [self._prepare_metadata(chunk) for chunk in batch]
@@ -96,9 +81,10 @@ class VectorStore:
                 metadatas=metadatas,
             )
             
-            logger.debug(f"Added batch {i // batch_size + 1}")
+            progress = min(100, int((i + batch_size) / len(chunks) * 100))
+            logger.info(f"Indexing progress: {progress}%")
         
-        logger.info(f"✅ Successfully added {len(chunks)} chunks")
+        logger.info(f"Successfully added {len(chunks)} chunks")
     
     def search(
         self,
@@ -106,23 +92,9 @@ class VectorStore:
         top_k: int = 10,
         filter_dict: Optional[Dict] = None,
     ) -> List[Dict[str, Any]]:
-        """Search for relevant chunks.
-        
-        Args:
-            query: Search query
-            top_k: Number of results to return
-            filter_dict: Optional metadata filters
-            
-        Returns:
-            List of results with chunk data and scores
-        """
-        # Generate query embedding
         query_embedding = self.embedder.embed_query(query)
-        
-        # Build where clause
         where = filter_dict if filter_dict else None
         
-        # Search
         results = self.collection.query(
             query_embeddings=[query_embedding.tolist()],
             n_results=top_k,
@@ -130,34 +102,32 @@ class VectorStore:
             include=["documents", "metadatas", "distances"],
         )
         
-        # Format results
         formatted = []
         for i in range(len(results["ids"][0])):
             formatted.append({
                 "chunk_id": results["ids"][0][i],
                 "content": results["documents"][0][i],
                 "metadata": results["metadatas"][0][i],
-                "score": 1 - results["distances"][0][i],  # Convert distance to similarity
+                "score": 1 - results["distances"][0][i],
             })
         
         return formatted
     
     def delete_collection(self) -> None:
-        """Delete the entire collection."""
-        self.client.delete_collection(self.collection_name)
+        try:
+            self.client.delete_collection(self.collection_name)
+        except:
+            pass
         self._collection = None
         logger.info(f"Deleted collection: {self.collection_name}")
     
     def get_stats(self) -> Dict[str, Any]:
-        """Get collection statistics."""
         return {
             "name": self.collection_name,
             "count": self.collection.count(),
         }
     
-    def _prepare_metadata(self, chunk: CodeChunk) -> Dict[str, Any]:
-        """Prepare metadata for ChromaDB (must be flat)."""
-        # ChromaDB requires flat metadata (no nested dicts/lists)
+    def _prepare_metadata(self, chunk) -> Dict[str, Any]:
         metadata = {
             "file_path": chunk.file_path,
             "chunk_type": chunk.chunk_type,
@@ -170,14 +140,11 @@ class VectorStore:
             metadata["name"] = chunk.name
         if chunk.parent:
             metadata["parent"] = chunk.parent
-        
-        # Flatten some metadata
-        if chunk.metadata.get("repo_name"):
-            metadata["repo_name"] = chunk.metadata["repo_name"]
-        if chunk.metadata.get("docstring"):
-            metadata["docstring"] = chunk.metadata["docstring"][:500]  # Limit size
-        
-        # Convert imports to string (ChromaDB doesn't support lists)
+        if hasattr(chunk, 'metadata'):
+            if chunk.metadata.get("repo_name"):
+                metadata["repo_name"] = chunk.metadata["repo_name"]
+            if chunk.metadata.get("docstring"):
+                metadata["docstring"] = chunk.metadata["docstring"][:500]
         if chunk.imports:
             metadata["imports"] = ",".join(chunk.imports[:20])
         

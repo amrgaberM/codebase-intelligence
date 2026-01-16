@@ -1,25 +1,25 @@
 ﻿from typing import List, Optional, Union
 import numpy as np
-from ..utils import config, logger
+from logger import logger
 
 
 class CodeEmbedder:
     
     def __init__(self, model_name: Optional[str] = None):
-        self.model_name = model_name or "BAAI/bge-base-en-v1.5"
+        # Use a smaller, faster model
+        self.model_name = model_name or "all-MiniLM-L6-v2"
         self._model = None
         logger.info(f"Embedder initialized with model: {self.model_name}")
     
     @property
     def model(self):
         if self._model is None:
-            import torch
             from sentence_transformers import SentenceTransformer
             
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            logger.info(f"Loading embedding model: {self.model_name} on {device.upper()}")
-            
-            self._model = SentenceTransformer(self.model_name, device=device)
+            logger.info(f"Loading embedding model: {self.model_name}")
+            self._model = SentenceTransformer(self.model_name)
+            # Force CPU to avoid GPU memory issues
+            self._model = self._model.to('cpu')
         return self._model
     
     @property
@@ -29,11 +29,14 @@ class CodeEmbedder:
     def embed(self, texts: Union[str, List[str]]) -> np.ndarray:
         if isinstance(texts, str):
             texts = [texts]
+        
+        # Smaller batch size for memory efficiency
         embeddings = self.model.encode(
             texts,
-            show_progress_bar=len(texts) > 10,
+            show_progress_bar=False,
             normalize_embeddings=True,
-            batch_size=64,
+            batch_size=32,
+            convert_to_numpy=True
         )
         return embeddings
     

@@ -437,8 +437,10 @@ with st.sidebar:
             clear_database()
             
             progress_bar = st.progress(0, text="Initializing...")
-            progress_bar.progress(20, text="Cloning repository...")
+            progress_bar.progress(10, text="Cloning repository...")
+            progress_bar.progress(30, text="Parsing files...")
             result = index_repository(repo_url)
+            progress_bar.progress(90, text="Finalizing...")
             progress_bar.progress(100, text="Complete")
             time.sleep(0.3)
             progress_bar.empty()
@@ -779,3 +781,4 @@ else:
                                     st.markdown(f'<div class="source-item">{call["file"]} (line {call["line"]})</div>', unsafe_allow_html=True)
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
+
