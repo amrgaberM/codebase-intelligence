@@ -5,7 +5,7 @@ from pathlib import Path
 
 st.set_page_config(
     page_title="CodeLens",
-    page_icon="",
+    page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -117,14 +117,12 @@ if "retriever" not in st.session_state:
     st.session_state.retriever = None
     st.session_state.generator = None
     st.session_state.reranker = None
-    st.session_state.intelligence = None
     st.session_state.indexed = False
     st.session_state.messages = []
     st.session_state.repo_name = ""
     st.session_state.files_count = 0
     st.session_state.chunks_count = 0
     st.session_state.files = None
-    st.session_state.indexing = False
 
 def clear_database():
     vectors_path = Path("data/vectors")
@@ -140,7 +138,7 @@ def index_repository(repo_url):
     from src.ingestion import GitHubLoader
     from src.chunking import ASTChunker
     from src.retrieval import HybridRetriever, LightweightReranker
-    from src.generation import CodeGenerator, CodeIntelligence
+    from src.generation import CodeGenerator
     
     loader = GitHubLoader()
     files = loader.clone_repo(repo_url)
@@ -151,9 +149,7 @@ def index_repository(repo_url):
     retriever = HybridRetriever()
     generator = CodeGenerator()
     reranker = LightweightReranker()
-    retriever.index(chunks, files)
-    
-    intelligence = CodeIntelligence(retriever, generator)
+    retriever.index(chunks)
     
     return {
         "files": files,
@@ -161,13 +157,12 @@ def index_repository(repo_url):
         "retriever": retriever,
         "generator": generator,
         "reranker": reranker,
-        "intelligence": intelligence,
         "repo_name": loader._parse_repo_name(repo_url)
     }
 
 # Sidebar
 with st.sidebar:
-    st.markdown("## CodeLens")
+    st.markdown("## 🧠 CodeLens")
     st.markdown("AI-Powered Code Intelligence")
     
     st.divider()
@@ -206,7 +201,6 @@ with st.sidebar:
             st.session_state.retriever = result["retriever"]
             st.session_state.generator = result["generator"]
             st.session_state.reranker = result["reranker"]
-            st.session_state.intelligence = result["intelligence"]
             st.session_state.repo_name = result["repo_name"]
             st.session_state.files_count = len(result["files"])
             st.session_state.chunks_count = len(result["chunks"])
@@ -218,17 +212,18 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Error: {str(e)}")
     
-    if st.session_state.indexed:
+    # FIX: Use .get() to safely check session state
+    if st.session_state.get("indexed", False):
         st.divider()
         st.markdown("### Statistics")
         
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("Files", st.session_state.files_count)
+            st.metric("Files", st.session_state.get("files_count", 0))
         with col2:
-            st.metric("Chunks", st.session_state.chunks_count)
+            st.metric("Chunks", st.session_state.get("chunks_count", 0))
         
-        st.caption(f" {st.session_state.repo_name}")
+        st.caption(f"📦 {st.session_state.get('repo_name', '')}")
         
         st.divider()
         st.markdown("### Settings")
@@ -241,15 +236,16 @@ with st.sidebar:
     st.divider()
     st.markdown(
         "<div style='text-align:center; color:#94A3B8; font-size:0.75rem;'>"
-        "Built with Streamlit + LangChain<br>GPU Accelerated"
+        "Built with Streamlit + RAG<br>GPU Accelerated"
         "</div>",
         unsafe_allow_html=True
     )
 
 # Main content
-if not st.session_state.indexed:
+# FIX: Use .get() to safely check session state
+if not st.session_state.get("indexed", False):
     # Landing page
-    st.markdown('<p class="main-header">CodeLens</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-header">🧠 CodeLens</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">Understand any codebase in seconds with AI-powered intelligence</p>', unsafe_allow_html=True)
     
     st.divider()
@@ -260,7 +256,7 @@ if not st.session_state.indexed:
     with col1:
         st.markdown("""
         <div class="stat-card">
-            <div class="stat-number"></div>
+            <div class="stat-number">💬</div>
             <div class="stat-label">Natural Language Q&A</div>
         </div>
         """, unsafe_allow_html=True)
@@ -268,7 +264,7 @@ if not st.session_state.indexed:
     with col2:
         st.markdown("""
         <div class="stat-card">
-            <div class="stat-number"></div>
+            <div class="stat-number">🔍</div>
             <div class="stat-label">Smart Code Search</div>
         </div>
         """, unsafe_allow_html=True)
@@ -276,7 +272,7 @@ if not st.session_state.indexed:
     with col3:
         st.markdown("""
         <div class="stat-card">
-            <div class="stat-number"></div>
+            <div class="stat-number">🔗</div>
             <div class="stat-label">Dependency Analysis</div>
         </div>
         """, unsafe_allow_html=True)
@@ -284,7 +280,7 @@ if not st.session_state.indexed:
     with col4:
         st.markdown("""
         <div class="stat-card">
-            <div class="stat-number"></div>
+            <div class="stat-number">📚</div>
             <div class="stat-label">Auto Documentation</div>
         </div>
         """, unsafe_allow_html=True)
@@ -299,7 +295,7 @@ if not st.session_state.indexed:
     with col1:
         st.markdown("""
         <div class="feature-card">
-            <div class="feature-icon">1</div>
+            <div class="feature-icon">1️⃣</div>
             <strong>Paste GitHub URL</strong><br>
             <span style="color:#64748B">Enter any public repository URL in the sidebar</span>
         </div>
@@ -308,7 +304,7 @@ if not st.session_state.indexed:
     with col2:
         st.markdown("""
         <div class="feature-card">
-            <div class="feature-icon">2</div>
+            <div class="feature-icon">2️⃣</div>
             <strong>Click Index</strong><br>
             <span style="color:#64748B">AI analyzes and understands the entire codebase</span>
         </div>
@@ -317,7 +313,7 @@ if not st.session_state.indexed:
     with col3:
         st.markdown("""
         <div class="feature-card">
-            <div class="feature-icon">3</div>
+            <div class="feature-icon">3️⃣</div>
             <strong>Ask Anything</strong><br>
             <span style="color:#64748B">Chat naturally about the code structure and logic</span>
         </div>
@@ -343,164 +339,67 @@ if not st.session_state.indexed:
         st.caption("Web Framework")
 
 else:
-    # Indexed state - show tabs
-    st.markdown(f'<p class="main-header">CodeLens</p>', unsafe_allow_html=True)
-    st.markdown(f'<p class="sub-header">Analyzing: {st.session_state.repo_name}</p>', unsafe_allow_html=True)
+    # Indexed state - show chat
+    st.markdown(f'<p class="main-header">🧠 CodeLens</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="sub-header">Analyzing: {st.session_state.get("repo_name", "")}</p>', unsafe_allow_html=True)
     
-    tabs = st.tabs([" Chat", " Explain", " Find Usages", " Generate Docs", " Analysis"])
+    # Chat messages
+    for msg in st.session_state.get("messages", []):
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+            if msg.get("sources"):
+                with st.expander("View Sources"):
+                    for src in msg["sources"]:
+                        st.markdown(f'<div class="source-item">{src}</div>', unsafe_allow_html=True)
     
-    # Tab 1: Chat
-    with tabs[0]:
-        # Chat messages
-        for msg in st.session_state.messages:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
-                if msg.get("sources"):
-                    with st.expander("View Sources"):
-                        for src in msg["sources"]:
-                            st.markdown(f'<div class="source-item">{src}</div>', unsafe_allow_html=True)
+    # Chat input
+    if prompt := st.chat_input("Ask about the codebase..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
         
-        # Chat input
-        if prompt := st.chat_input("Ask about the codebase..."):
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            
-            with st.chat_message("user"):
-                st.markdown(prompt)
-            
-            with st.chat_message("assistant"):
-                with st.spinner("Thinking..."):
-                    try:
-                        start = time.time()
-                        results = st.session_state.retriever.search(prompt, top_k=top_k*2)
-                        
-                        if results and use_reranking:
-                            results = st.session_state.reranker.rerank(prompt, results, top_k=top_k)
-                        elif results:
-                            results = results[:top_k]
-                        
-                        if results:
-                            answer = st.session_state.generator.generate(prompt, results)
-                        else:
-                            answer = "No relevant code found. Try a different question."
-                        
-                        elapsed = time.time() - start
-                    except Exception as e:
-                        answer = f"Error: {str(e)}"
-                        results = []
-                        elapsed = 0
-                
-                st.markdown(answer)
-                
-                sources = []
-                if results:
-                    with st.expander("View Sources"):
-                        for i, r in enumerate(results[:5], 1):
-                            meta = r.get("metadata", {})
-                            src = f"{meta.get('file_path', '?')}  {meta.get('name', '?')} ({meta.get('chunk_type', '?')})"
-                            sources.append(src)
-                            st.markdown(f'<div class="source-item">{i}. {src}</div>', unsafe_allow_html=True)
-                
-                st.caption(f" {elapsed:.2f}s")
-                
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": answer,
-                    "sources": sources
-                })
-    
-    # Tab 2: Explain
-    with tabs[1]:
-        st.markdown("### Explain Function or Class")
+        with st.chat_message("user"):
+            st.markdown(prompt)
         
-        func_name = st.text_input("Enter name", placeholder="e.g., main, get_user, Config")
-        
-        if st.button("Explain", key="explain_btn", type="primary"):
-            if func_name:
-                with st.spinner("Analyzing..."):
-                    result = st.session_state.intelligence.explain_function(func_name)
-                
-                if "error" in result:
-                    st.error(result["error"])
-                else:
-                    col1, col2 = st.columns([1, 2])
-                    with col1:
-                        st.markdown(f"**File:** {result['file_path']}")
-                        st.markdown(f"**Lines:** {result['start_line']} - {result['end_line']}")
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                try:
+                    start = time.time()
+                    retriever = st.session_state.get("retriever")
+                    generator = st.session_state.get("generator")
+                    reranker = st.session_state.get("reranker")
                     
-                    st.code(result["code"], language="python")
-                    st.markdown("### Explanation")
-                    st.markdown(result["explanation"])
-    
-    # Tab 3: Find Usages
-    with tabs[2]:
-        st.markdown("### Find Usages")
-        
-        search_name = st.text_input("Enter name to find", placeholder="e.g., config, User, db")
-        
-        if st.button("Search", key="usage_btn", type="primary"):
-            if search_name:
-                with st.spinner("Searching..."):
-                    result = st.session_state.intelligence.find_usages(search_name)
-                
-                st.markdown(f"**Found {result['total_usages']} occurrences**")
-                
-                usages = result["usages"]
-                
-                if usages["definition"]:
-                    st.markdown("#### Definition")
-                    d = usages["definition"]
-                    st.markdown(f'<div class="source-item">{d["file"]} (line {d["line"]})</div>', unsafe_allow_html=True)
-                
-                if usages["calls"]:
-                    st.markdown("#### Calls")
-                    for u in usages["calls"][:10]:
-                        st.markdown(f'<div class="source-item">{u["file"]} (line {u["line"]})</div>', unsafe_allow_html=True)
-    
-    # Tab 4: Generate Docs
-    with tabs[3]:
-        st.markdown("### Generate Documentation")
-        
-        if st.session_state.files:
-            py_files = [f.path for f in st.session_state.files if f.language == "python"]
-            selected = st.selectbox("Select file", py_files)
+                    results = retriever.search(prompt, top_k=top_k*2)
+                    
+                    if results and use_reranking:
+                        results = reranker.rerank(prompt, results, top_k=top_k)
+                    elif results:
+                        results = results[:top_k]
+                    
+                    if results:
+                        answer = generator.generate(prompt, results)
+                    else:
+                        answer = "No relevant code found. Try a different question."
+                    
+                    elapsed = time.time() - start
+                except Exception as e:
+                    answer = f"Error: {str(e)}"
+                    results = []
+                    elapsed = 0
             
-            if st.button("Generate", key="docs_btn", type="primary"):
-                with st.spinner("Generating documentation..."):
-                    docs = st.session_state.intelligence.generate_documentation(selected)
-                
-                st.markdown(docs)
-                
-                st.download_button(
-                    "Download Markdown",
-                    docs,
-                    file_name=f"{Path(selected).stem}_docs.md",
-                    mime="text/markdown"
-                )
-    
-    # Tab 5: Analysis
-    with tabs[4]:
-        st.markdown("### Codebase Analysis")
-        
-        if st.button("Analyze", key="analyze_btn", type="primary"):
-            with st.spinner("Analyzing codebase..."):
-                stats = st.session_state.intelligence.analyze_codebase()
+            st.markdown(answer)
             
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Files", stats["total_files"])
-            with col2:
-                st.metric("Chunks", stats["total_chunks"])
-            with col3:
-                st.metric("Classes", len(stats["classes"]))
+            sources = []
+            if results:
+                with st.expander("View Sources"):
+                    for i, r in enumerate(results[:5], 1):
+                        meta = r.get("metadata", {})
+                        src = f"{meta.get('file_path', '?')} → {meta.get('name', '?')} ({meta.get('chunk_type', '?')})"
+                        sources.append(src)
+                        st.markdown(f'<div class="source-item">{i}. {src}</div>', unsafe_allow_html=True)
             
-            col1, col2 = st.columns(2)
+            st.caption(f"⏱️ {elapsed:.2f}s")
             
-            with col1:
-                st.markdown("#### Classes")
-                for c in stats["classes"][:10]:
-                    st.markdown(f'<div class="source-item">{c["name"]} in {c["file"]}</div>', unsafe_allow_html=True)
-            
-            with col2:
-                st.markdown("#### Functions")
-                for f in stats["functions"][:10]:
-                    st.markdown(f'<div class="source-item">{f["name"]} in {f["file"]}</div>', unsafe_allow_html=True)
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": answer,
+                "sources": sources
+            })
