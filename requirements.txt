@@ -9,7 +9,7 @@ transformers>=4.36.0
 torch>=2.2.0
 
 # Vector Store & Search
-chromadb>=0.4.22
+chromadb==0.4.22
 rank-bm25>=0.2.2
 
 # API & Web
