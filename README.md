@@ -92,7 +92,7 @@ Traditional code search tools rely on keyword matching, missing the semantic rel
 ---
 
 ## Architecture
-`
+```
                                  CodeLens Architecture
                                  
     +------------------------------------------------------------------+
@@ -149,7 +149,7 @@ Traditional code search tools rely on keyword matching, missing the semantic rel
     |  | - Llama 3.3 |  |  - Context  |  |  - Find similar        | |
     |  | - Streaming |  |  - Format   |  |  - Generate docs       | |
     +--+-------------+--+-------------+--+------------------------+-+
-`
+```
 
 ---
 
@@ -163,29 +163,29 @@ Traditional code search tools rely on keyword matching, missing the semantic rel
 ### Setup
 
 1. Clone the repository:
-`ash
+```bash
 git clone https://github.com/yourusername/codelens.git
 cd codelens
-`
+```
 
 2. Create a virtual environment:
-`ash
+```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
-`
+```
 
 3. Install dependencies:
-`ash
+```bash
 pip install -r requirements.txt
-`
+```
 
 4. Configure environment variables:
-`ash
+```bash
 # Create .env file
 echo "GROQ_API_KEY=your_groq_api_key" > .env
 echo "HF_TOKEN=your_huggingface_token" >> .env
-`
+```
 
 ### Getting API Keys
 
@@ -202,14 +202,14 @@ echo "HF_TOKEN=your_huggingface_token" >> .env
 ## Quick Start
 
 ### Web Interface
-`ash
+```bash
 streamlit run streamlit_app.py
-`
+```
 
 Open http://localhost:8501 in your browser.
 
 ### CLI
-`ash
+```bash
 # Index a repository
 python cli.py ingest https://github.com/tiangolo/typer
 
@@ -218,10 +218,10 @@ python cli.py query "How do I create a CLI command?"
 
 # Interactive chat mode
 python cli.py chat
-`
+```
 
 ### API
-`ash
+```bash
 # Start the API server
 uvicorn src.api.main:app --reload
 
@@ -234,7 +234,7 @@ curl -X POST http://localhost:8000/api/v1/ingest \
 curl -X POST http://localhost:8000/api/v1/query \
   -H "Content-Type: application/json" \
   -d '{"query": "How does argument parsing work?"}'
-`
+```
 
 ---
 
@@ -294,16 +294,16 @@ Get high-level codebase statistics:
 Index a GitHub repository.
 
 **Request:**
-`json
+```json
 {
   "repo_url": "https://github.com/owner/repo",
   "branch": "main",
   "force": false
 }
-`
+```
 
 **Response:**
-`json
+```json
 {
   "success": true,
   "repo_name": "owner_repo",
@@ -311,23 +311,23 @@ Index a GitHub repository.
   "chunks_created": 312,
   "message": "Successfully indexed 312 chunks from 45 files"
 }
-`
+```
 
 #### POST /api/v1/query
 Query the indexed codebase.
 
 **Request:**
-`json
+```json
 {
   "query": "How does the login function work?",
   "top_k": 5,
   "use_reranking": true,
   "filter_file": null
 }
-`
+```
 
 **Response:**
-`json
+```json
 {
   "query": "How does the login function work?",
   "answer": "The login function in auth.py handles user authentication...",
@@ -345,19 +345,19 @@ Query the indexed codebase.
   "retrieval_time_ms": 45.2,
   "generation_time_ms": 1234.5
 }
-`
+```
 
 #### GET /api/v1/stats
 Get system statistics.
 
 **Response:**
-`json
+```json
 {
   "collection_name": "codebase",
   "total_chunks": 312,
   "repos_indexed": ["owner_repo"]
 }
-`
+```
 
 #### DELETE /api/v1/collection
 Delete all indexed data and reset the system.
@@ -367,7 +367,7 @@ Delete all indexed data and reset the system.
 ## Configuration
 
 ### config.yaml
-`yaml
+```yaml
 # LLM Settings
 llm:
   provider: "groq"
@@ -410,7 +410,7 @@ ignore_patterns:
   - "__pycache__"
   - ".git"
   - "venv"
-`
+```
 
 ---
 
@@ -419,14 +419,14 @@ ignore_patterns:
 ### AST-Based Chunking
 
 Unlike text-based chunking that splits at arbitrary character boundaries, CodeLens uses Abstract Syntax Trees to understand code structure:
-`
+```
 Text Chunking (Problem):
   Chunk 1: "def process(data):\n    result = []\n    for item in da"
   Chunk 2: "ta:\n        result.append(item)\n    return result"
   
 AST Chunking (Solution):
   Chunk 1: Complete process() function with full context
-`
+```
 
 Benefits:
 - Preserves 100% of function and class boundaries
@@ -451,21 +451,21 @@ CodeLens combines two retrieval strategies:
    - Weight: 30% of final score
 
 Results are merged using Reciprocal Rank Fusion (RRF):
-`
+```
 RRF_score = sum(weight / (k + rank)) for each system
-`
+```
 
 ### Dependency Graph
 
 CodeLens builds a graph of file dependencies by analyzing imports:
-`
+```
 utils.py
     |
     +-- imports --> config.py
     |
     +-- imported by --> main.py
                    --> api.py
-`
+```
 
 When retrieving context, 3-5 related files are automatically included to give the LLM a complete picture.
 
@@ -493,7 +493,7 @@ When retrieving context, 3-5 related files are automatically included to give th
 | Large (Flask) | 800+ | 3,000+ | 75s | 45ms |
 
 ### Sample Query Performance
-`json
+```json
 {
   "question": "How do I create a CLI command?",
   "retrieval_time_ms": 64.9,
@@ -501,7 +501,7 @@ When retrieving context, 3-5 related files are automatically included to give th
   "chunks_retrieved": 5,
   "files_referenced": 4
 }
-`
+```
 
 ### Retrieval Quality
 
@@ -515,7 +515,7 @@ When retrieving context, 3-5 related files are automatically included to give th
 ---
 
 ## Project Structure
-`
+```
 codelens/
 +-- src/
 |   +-- api/                 # FastAPI REST API
@@ -562,7 +562,7 @@ codelens/
 +-- config.yaml              # Configuration file
 +-- Dockerfile               # Container build
 +-- docker-compose.yml       # Container orchestration
-`
+```
 
 ---
 
@@ -586,13 +586,13 @@ codelens/
 Contributions are welcome. Please follow these guidelines:
 
 1. Fork the repository
-2. Create a feature branch (git checkout -b feature/new-feature)
+2. Create a feature branch (`git checkout -b feature/new-feature`)
 3. Make your changes
-4. Run tests (pytest tests/)
+4. Run tests (`pytest tests/`)
 5. Submit a pull request
 
 ### Development Setup
-`ash
+```bash
 # Install dev dependencies
 pip install -r requirements.txt
 pip install pytest black isort
@@ -603,7 +603,7 @@ pytest tests/ -v
 # Format code
 black src/
 isort src/
-`
+```
 
 ---
 
