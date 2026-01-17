@@ -3,7 +3,12 @@ import time
 import shutil
 from pathlib import Path
 import sys
-import graphviz
+
+# Safe import for graphviz to prevent app crash if not installed
+try:
+    import graphviz
+except ImportError:
+    graphviz = None
 
 # Add path for local imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -737,20 +742,23 @@ else:
             
             # Graph Visualization using Graphviz
             st.subheader("Dependency Overview")
-            try:
-                graph = graphviz.Digraph()
-                graph.attr(bgcolor='transparent', fontcolor='white')
-                graph.attr('node', style='filled', color='#6366f1', fontcolor='white', fontname='Inter')
-                graph.attr('edge', color='#94a3b8')
-                
-                # Add nodes for top 5 files/classes to avoid clutter
-                for cls in stats.get("classes", [])[:5]:
-                     graph.node(cls["name"], shape="box")
-                     graph.edge("Root", cls["name"])
-                
-                st.graphviz_chart(graph)
-            except Exception:
-                st.caption("Graph visualization unavailable (Graphviz not installed).")
+            if graphviz:
+                try:
+                    graph = graphviz.Digraph()
+                    graph.attr(bgcolor='transparent', fontcolor='white')
+                    graph.attr('node', style='filled', color='#6366f1', fontcolor='white', fontname='Inter')
+                    graph.attr('edge', color='#94a3b8')
+                    
+                    # Add nodes for top 5 files/classes to avoid clutter
+                    for cls in stats.get("classes", [])[:5]:
+                         graph.node(cls["name"], shape="box")
+                         graph.edge("Root", cls["name"])
+                    
+                    st.graphviz_chart(graph)
+                except Exception as e:
+                    st.caption(f"Graph visualization error: {str(e)}")
+            else:
+                 st.caption("Graph visualization unavailable (Graphviz library not installed).")
 
             st.markdown("---")
             d1, d2 = st.columns(2)
