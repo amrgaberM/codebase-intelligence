@@ -4,12 +4,6 @@ import shutil
 from pathlib import Path
 import sys
 
-# Safe import for graphviz to prevent app crash if not installed
-try:
-    import graphviz
-except ImportError:
-    graphviz = None
-
 # Add path for local imports
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -24,7 +18,7 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# SVG ICONS (NO EMOJIS)
+# SVG ICONS
 # -----------------------------------------------------------------------------
 SVGS = {
     "zap": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>""",
@@ -199,17 +193,51 @@ st.markdown("""
 
     /* Fixed Chat History Container */
     .chat-history-container {
-        height: 65vh;
+        height: calc(100vh - 350px);
         overflow-y: auto;
-        padding-right: 10px;
+        padding-right: 15px;
         padding-bottom: 20px;
+        padding-top: 10px;
         scrollbar-width: thin;
     }
-    /* Ensure chat input stays distinct */
-    .stChatInputContainer {
-        padding-top: 1rem;
-        background: linear-gradient(0deg, #0f1117 80%, transparent);
+    
+    .chat-status-bar {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        background: rgba(99, 102, 241, 0.1);
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
+
+    /* Tree View CSS */
+    .tree-view {
+        font-family: 'JetBrains Mono', monospace;
+        color: #e2e8f0;
+        padding: 1rem;
+    }
+    .tree-node {
+        margin-left: 1.5rem;
+        position: relative;
+        padding-left: 0.5rem;
+        border-left: 1px dashed var(--primary);
+        line-height: 2;
+    }
+    .tree-node::before {
+        content: '';
+        position: absolute;
+        top: 14px;
+        left: 0;
+        width: 10px;
+        height: 1px;
+        background: var(--primary);
+    }
+    .tree-root { font-weight: bold; color: var(--accent); margin-bottom: 0.5rem; }
+    .tree-leaf { color: #94a3b8; }
 
     /* Sidebar */
     section[data-testid="stSidebar"] {
@@ -588,7 +616,17 @@ else:
         chat_container = st.container()
         
         with chat_container:
+            st.markdown('<div class="chat-status-bar">🟢 Connected to Knowledge Base</div>', unsafe_allow_html=True)
             st.markdown('<div class="chat-history-container">', unsafe_allow_html=True)
+            
+            # Show empty state if no messages
+            if not st.session_state.get("messages", []):
+                st.markdown("""
+                <div style="text-align: center; color: #64748b; padding: 2rem;">
+                    <p>👋 Ask anything about your codebase structure or logic.</p>
+                </div>
+                """, unsafe_allow_html=True)
+
             for msg in st.session_state.get("messages", []):
                 with st.chat_message(msg["role"]):
                     st.markdown(msg["content"])
@@ -740,25 +778,25 @@ else:
         if "codebase_stats" in st.session_state:
             stats = st.session_state.codebase_stats
             
-            # Graph Visualization using Graphviz
-            st.subheader("Dependency Overview")
-            if graphviz:
-                try:
-                    graph = graphviz.Digraph()
-                    graph.attr(bgcolor='transparent', fontcolor='white')
-                    graph.attr('node', style='filled', color='#6366f1', fontcolor='white', fontname='Inter')
-                    graph.attr('edge', color='#94a3b8')
-                    
-                    # Add nodes for top 5 files/classes to avoid clutter
-                    for cls in stats.get("classes", [])[:5]:
-                         graph.node(cls["name"], shape="box")
-                         graph.edge("Root", cls["name"])
-                    
-                    st.graphviz_chart(graph)
-                except Exception as e:
-                    st.caption(f"Graph visualization error: {str(e)}")
-            else:
-                 st.caption("Graph visualization unavailable (Graphviz library not installed).")
+            # CSS Tree Visualization instead of Graphviz
+            st.subheader("Structure Map")
+            
+            tree_html = '<div class="tree-view">'
+            tree_html += '<div class="tree-root">📦 Root</div>'
+            
+            # Simple visualization of top files/classes
+            for cls in stats.get("classes", [])[:8]:
+                tree_html += f'<div class="tree-node"><span class="tree-leaf">Class:</span> {cls["name"]} <span style="opacity:0.5; font-size:0.8em">({cls["file"]})</span></div>'
+            for func in stats.get("functions", [])[:5]:
+                tree_html += f'<div class="tree-node"><span class="tree-leaf">Func:</span> {func["name"]} <span style="opacity:0.5; font-size:0.8em">({func["file"]})</span></div>'
+            
+            tree_html += '</div>'
+            
+            st.markdown(f"""
+            <div class="glass-card">
+                {tree_html}
+            </div>
+            """, unsafe_allow_html=True)
 
             st.markdown("---")
             d1, d2 = st.columns(2)
