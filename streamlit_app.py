@@ -3,8 +3,9 @@ import time
 import shutil
 from pathlib import Path
 import sys
+import graphviz
 
-# Add path for local imports (preserving your logic)
+# Add path for local imports
 sys.path.insert(0, str(Path(__file__).parent))
 
 # -----------------------------------------------------------------------------
@@ -18,6 +19,20 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
+# SVG ICONS (NO EMOJIS)
+# -----------------------------------------------------------------------------
+SVGS = {
+    "zap": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>""",
+    "search": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>""",
+    "chat": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>""",
+    "git": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>""",
+    "code": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>""",
+    "file": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>""",
+    "layers": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>""",
+    "box": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>"""
+}
+
+# -----------------------------------------------------------------------------
 # PROFESSIONAL UI & CSS STYLING
 # -----------------------------------------------------------------------------
 st.markdown("""
@@ -28,205 +43,248 @@ st.markdown("""
         --secondary: #8b5cf6;
         --accent: #06b6d4;
         --bg-dark: #0f1117;
-        --bg-card: rgba(30, 41, 59, 0.7);
-        --text-primary: #f1f5f9;
+        --bg-card: rgba(20, 25, 40, 0.7);
+        --text-primary: #f8fafc;
         --text-secondary: #94a3b8;
-        --border: rgba(148, 163, 184, 0.1);
+        --border: rgba(99, 102, 241, 0.15);
     }
     
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
     /* App Background */
     .stApp {
-        background: radial-gradient(circle at top left, #1e1b4b 0%, #0f1117 40%);
+        background: linear-gradient(-45deg, #0f1117, #1e1b4b, #0f0f15, #111827);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
         color: var(--text-primary);
     }
 
-    /* Modern Scrollbar */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
     /* Typography */
-    h1, h2, h3 { font-family: 'Inter', sans-serif; letter-spacing: -0.02em; }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Inter', sans-serif; letter-spacing: -0.01em; }
     
-    /* Custom Classes for UI Elements */
+    /* Hero Section */
     .hero-container {
         text-align: center;
-        padding: 4rem 2rem;
-        background: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%);
-        border-radius: 24px;
+        padding: 5rem 2rem;
+        background: radial-gradient(circle at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+        border-radius: 30px;
         margin-bottom: 3rem;
         border: 1px solid var(--border);
+        box-shadow: 0 0 80px -20px rgba(99, 102, 241, 0.15);
     }
     
     .hero-title {
-        font-size: 4rem;
+        font-size: 4.5rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+        background: linear-gradient(135deg, #fff 20%, #818cf8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
     }
     
     .hero-subtitle {
         font-size: 1.25rem;
         color: var(--text-secondary);
-        max-width: 600px;
+        max-width: 650px;
         margin: 0 auto;
+        line-height: 1.6;
     }
 
-    /* Glass Cards */
+    /* Cards */
     .glass-card {
         background: var(--bg-card);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border: 1px solid var(--border);
         border-radius: 16px;
         padding: 1.5rem;
         height: 100%;
-        transition: transform 0.2s ease, border-color 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     
     .glass-card:hover {
-        transform: translateY(-2px);
-        border-color: rgba(99, 102, 241, 0.4);
+        transform: translateY(-4px);
+        border-color: rgba(99, 102, 241, 0.5);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
     }
 
     /* Icon Box */
     .icon-box {
-        width: 48px;
-        height: 48px;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
-        border-radius: 12px;
+        width: 52px;
+        height: 52px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.15));
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
         margin-bottom: 1rem;
         color: #a5b4fc;
-        border: 1px solid rgba(99, 102, 241, 0.3);
+        border: 1px solid rgba(99, 102, 241, 0.2);
     }
+    .icon-box svg { width: 26px; height: 26px; }
 
-    /* Stats HUD */
+    /* HUD Stats */
     .hud-container {
         display: flex;
-        gap: 1rem;
+        gap: 1.5rem;
         margin-bottom: 2rem;
         flex-wrap: wrap;
     }
     
     .hud-item {
         flex: 1;
-        background: linear-gradient(90deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 41, 59, 0.4) 100%);
-        border-left: 4px solid var(--primary);
-        padding: 1rem;
-        border-radius: 0 12px 12px 0;
-        min-width: 150px;
-    }
-
-    .hud-value { font-size: 1.5rem; font-weight: 700; color: #fff; }
-    .hud-label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em; }
-
-    /* Steps Timeline */
-    .step-card {
-        background: rgba(15, 23, 42, 0.6);
-        border: 1px dashed var(--border);
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--border);
+        padding: 1.25rem;
         border-radius: 12px;
-        padding: 1.5rem;
+        min-width: 160px;
+        position: relative;
+        overflow: hidden;
+    }
+    .hud-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--primary);
+    }
+    .hud-item:last-child::before { background: var(--accent); }
+
+    .hud-value { font-size: 1.75rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+    .hud-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.1em; }
+
+    /* Timeline Steps */
+    .step-card {
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px dashed var(--border);
+        border-radius: 16px;
+        padding: 2rem 1.5rem;
         text-align: center;
         position: relative;
+        transition: 0.3s;
     }
+    .step-card:hover { background: rgba(15, 23, 42, 0.8); border-style: solid; }
     .step-badge {
         position: absolute;
-        top: -12px;
+        top: -14px;
         left: 50%;
         transform: translateX(-50%);
-        background: var(--primary);
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
         color: white;
-        font-weight: bold;
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 100px;
+        font-size: 0.85rem;
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
     }
 
-    /* Sidebar Styling */
+    /* Fixed Chat History Container */
+    .chat-history-container {
+        height: 65vh;
+        overflow-y: auto;
+        padding-right: 10px;
+        padding-bottom: 20px;
+        scrollbar-width: thin;
+    }
+    /* Ensure chat input stays distinct */
+    .stChatInputContainer {
+        padding-top: 1rem;
+        background: linear-gradient(0deg, #0f1117 80%, transparent);
+    }
+
+    /* Sidebar */
     section[data-testid="stSidebar"] {
-        background-color: #0b0f19;
+        background-color: #080a0f;
         border-right: 1px solid var(--border);
     }
     
-    /* Input Fields */
+    /* Inputs */
     .stTextInput input, .stTextArea textarea, .stSelectbox > div > div {
-        background-color: rgba(15, 23, 42, 0.8) !important;
-        border: 1px solid rgba(148, 163, 184, 0.2) !important;
+        background-color: rgba(30, 41, 59, 0.6) !important;
+        border: 1px solid rgba(148, 163, 184, 0.15) !important;
         color: #e2e8f0 !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
+        transition: 0.2s;
     }
     .stTextInput input:focus, .stTextArea textarea:focus {
         border-color: var(--primary) !important;
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+        background-color: rgba(30, 41, 59, 0.9) !important;
     }
 
     /* Buttons */
     .stButton button {
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 600;
-        transition: all 0.2s;
+        letter-spacing: 0.02em;
+        transition: all 0.25s;
+        border: none;
     }
     .stButton button[kind="primary"] {
         background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        border: none;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
     }
     .stButton button[kind="secondary"] {
-        background: transparent;
+        background: rgba(255, 255, 255, 0.05);
         border: 1px solid var(--border);
         color: var(--text-secondary);
     }
     .stButton button:hover {
-        transform: translateY(-1px);
-        opacity: 0.9;
+        transform: translateY(-2px);
+        filter: brightness(1.1);
     }
 
     /* Tabs */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 20px;
-        border-bottom: 1px solid var(--border);
+        gap: 10px;
+        background: rgba(15, 23, 42, 0.5);
+        padding: 5px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
     }
     .stTabs [data-baseweb="tab"] {
-        height: 50px;
+        height: 40px;
         background-color: transparent;
         border: none;
         color: var(--text-secondary);
         font-weight: 500;
+        border-radius: 8px;
     }
     .stTabs [aria-selected="true"] {
-        color: var(--primary);
-        border-bottom: 2px solid var(--primary);
+        background-color: rgba(99, 102, 241, 0.2);
+        color: #fff;
     }
 
-    /* Custom Source Item */
+    /* Source Item */
     .source-item {
-        background: rgba(15, 23, 42, 0.5);
-        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.1);
         border-radius: 8px;
-        padding: 0.75rem;
+        padding: 0.85rem;
         margin-bottom: 0.5rem;
-        font-family: 'SF Mono', 'Roboto Mono', monospace;
-        font-size: 0.85rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
+        color: #cbd5e1;
     }
-    .source-item:before {
-        content: '';
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--accent);
-    }
-
-    /* Hide default elements */
+    .source-item svg { width: 14px; height: 14px; opacity: 0.7; }
+    
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -290,7 +348,6 @@ def estimate_time(repo_url: str) -> dict:
     return {"success": False}
 
 def index_repository(repo_url, progress_callback=None):
-    # NOTE: Assuming these imports exist in your environment as per original code
     from src.ingestion import GitHubLoader
     from src.chunking import ASTChunker
     from src.retrieval import HybridRetriever, LightweightReranker
@@ -327,11 +384,16 @@ def index_repository(repo_url, progress_callback=None):
 # SIDEBAR
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown("### ⚡ CodeLens")
-    st.markdown('<p style="color: #64748b; font-size: 0.8rem; margin-top: -10px;">AI-Powered Code Intelligence</p>', unsafe_allow_html=True)
-    st.divider()
+    st.markdown(f"""
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+        <div style="width: 32px; height: 32px; background: #6366f1; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
+            {SVGS['zap'].replace('width="24"', 'width="18"').replace('height="24"', 'height="18"')}
+        </div>
+        <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: #fff;">CodeLens</h2>
+    </div>
+    """, unsafe_allow_html=True)
     
-    st.caption("REPOSITORY SETUP")
+    st.caption("REPOSITORY CONTROL")
     repo_url = st.text_input("GitHub URL", placeholder="https://github.com/owner/repo", label_visibility="collapsed")
     
     col_est, col_idx = st.columns(2)
@@ -348,12 +410,12 @@ with st.sidebar:
                     else:
                         st.warning("Failed")
     
-    # Display Estimate in Sidebar if available
+    # Display Estimate in Sidebar
     if st.session_state.get("show_estimate", False) and "estimate_data" in st.session_state:
         est = st.session_state.estimate_data
         st.markdown(f"""
         <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; padding: 12px; margin: 10px 0;">
-            <div style="color: #a5b4fc; font-weight: bold; font-size: 1.1rem;">⏱ {est['est_time_str']}</div>
+            <div style="color: #a5b4fc; font-weight: bold; font-size: 1.1rem;">{est['est_time_str']}</div>
             <div style="color: #94a3b8; font-size: 0.75rem;">{est['est_files']} files • {est['size_kb']} KB</div>
         </div>
         """, unsafe_allow_html=True)
@@ -371,7 +433,7 @@ with st.sidebar:
                 
                 def update_progress(pct, text):
                     progress_bar.progress(pct, text=text)
-                    status_box.caption(f"✨ {text}")
+                    status_box.caption(f"{text}")
                 
                 start_time = time.time()
                 result = index_repository(repo_url, update_progress)
@@ -402,13 +464,13 @@ with st.sidebar:
 
     if st.session_state.get("indexed", False):
         st.divider()
-        if st.button("Reset / Clear", type="secondary", use_container_width=True):
+        if st.button("Reset Session", type="secondary", use_container_width=True):
             clear_database()
             st.rerun()
             
         st.divider()
-        st.caption("SEARCH SETTINGS")
-        top_k = st.slider("Context Window (Chunks)", 1, 10, 5)
+        st.caption("ADVANCED SETTINGS")
+        top_k = st.slider("Context Window", 1, 10, 5)
         use_reranking = st.checkbox("Semantic Reranking", value=True)
     else:
         top_k = 5
@@ -425,7 +487,8 @@ if not st.session_state.get("indexed", False):
     st.markdown("""
     <div class="hero-container">
         <h1 class="hero-title">CodeLens</h1>
-        <p class="hero-subtitle">Decode any repository in seconds. <br>AI-powered semantic search, analysis, and documentation generation.</p>
+        <p class="hero-subtitle">Turn your repository into an intelligent knowledge base.<br>
+        Ask questions, trace dependencies, and generate documentation instantly.</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -433,10 +496,10 @@ if not st.session_state.get("indexed", False):
     c1, c2, c3, c4 = st.columns(4)
     
     features = [
-        {"icon": "💬", "title": "Natural QA", "desc": "Chat with your codebase in plain English."},
-        {"icon": "🔍", "title": "Deep Search", "desc": "Hybrid semantic & keyword retrieval."},
-        {"icon": "🔗", "title": "Dependency", "desc": "Trace logic across files and classes."},
-        {"icon": "⚡", "title": "AST Parsing", "desc": "Structure-aware code chunking."}
+        {"icon": SVGS['chat'], "title": "Natural QA", "desc": "Context-aware chat interactions."},
+        {"icon": SVGS['search'], "title": "Deep Search", "desc": "Semantic & keyword retrieval."},
+        {"icon": SVGS['git'], "title": "Dependency", "desc": "Cross-file logic tracing."},
+        {"icon": SVGS['layers'], "title": "AST Parsing", "desc": "Structure-aware chunking."}
     ]
     
     for col, feat in zip([c1, c2, c3, c4], features):
@@ -450,13 +513,13 @@ if not st.session_state.get("indexed", False):
             """, unsafe_allow_html=True)
 
     # Workflow Section
-    st.markdown('<h2 style="text-align: center; margin: 4rem 0 2rem;">How It Works</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="text-align: center; margin: 5rem 0 3rem;">Workflow</h2>', unsafe_allow_html=True)
     s1, s2, s3 = st.columns(3)
     
     steps = [
-        {"num": "01", "title": "Paste URL", "desc": "Enter a public GitHub repository URL in the sidebar."},
-        {"num": "02", "title": "Index Code", "desc": "Our AI analyzes structure, syntax trees, and semantics."},
-        {"num": "03", "title": "Interact", "desc": "Ask questions, generate docs, or analyze functions."}
+        {"num": "1", "title": "Connect", "desc": "Paste a GitHub URL to start cloning."},
+        {"num": "2", "title": "Analyze", "desc": "AI processes syntax trees and vectors."},
+        {"num": "3", "title": "Explore", "desc": "Interact with your codebase via chat."}
     ]
     
     for col, step in zip([s1, s2, s3], steps):
@@ -469,9 +532,9 @@ if not st.session_state.get("indexed", False):
             </div>
             """, unsafe_allow_html=True)
 
-    # Suggested Repos
-    st.markdown('<div style="margin-top: 3rem;"></div>', unsafe_allow_html=True)
-    st.caption("POPULAR REPOSITORIES TO TRY")
+    # Suggested Repos (Fixed URLs)
+    st.markdown('<div style="margin-top: 5rem;"></div>', unsafe_allow_html=True)
+    st.caption("POPULAR REPOSITORIES")
     r1, r2, r3 = st.columns(3)
     
     repos = [
@@ -482,16 +545,16 @@ if not st.session_state.get("indexed", False):
     
     for col, repo in zip([r1, r2, r3], repos):
         with col:
-            st.code(f"github.com/{repo['name']}")
+            st.code(f"https://github.com/{repo['name']}")
 
 # --- VIEW: DASHBOARD (INDEXED) ---
 else:
     # Header & HUD
     st.markdown(f"""
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
         <div>
             <h1 style="margin: 0; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{st.session_state.get("repo_name", "Repository")}</h1>
-            <p style="color: #64748b; margin: 0;">Active Intelligence Session</p>
+            <p style="color: #64748b; margin: 0; font-size: 0.9rem;">Interactive Intelligence Dashboard</p>
         </div>
     </div>
     
@@ -502,97 +565,92 @@ else:
         </div>
         <div class="hud-item">
             <div class="hud-value">{st.session_state.get("chunks_count", 0)}</div>
-            <div class="hud-label">Knowledge Chunks</div>
+            <div class="hud-label">Vector Chunks</div>
         </div>
         <div class="hud-item" style="border-left-color: var(--accent);">
-            <div class="hud-value">Ready</div>
-            <div class="hud-label">System Status</div>
+            <div class="hud-value">Active</div>
+            <div class="hud-label">Engine Status</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     # Main Tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["💬 Chat", "⚡ Explain", "🔍 Similar", "📝 Docs", "📊 Analyze"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Chat & Query", "Logic Explainer", "Pattern Match", "Auto Docs", "Deep Analysis"])
     
     # --- TAB 1: CHAT ---
     with tab1:
-        st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
+        # Fixed height container for chat history
+        chat_container = st.container()
         
-        # Chat History
-        for msg in st.session_state.get("messages", []):
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
-                if msg.get("sources"):
-                    with st.expander("📚 Referenced Sources"):
-                        for src in msg["sources"]:
-                            st.markdown(f'<div class="source-item">{src}</div>', unsafe_allow_html=True)
-        
-        # Input
-        if prompt := st.chat_input("Ask about the codebase logic, structure, or implementation..."):
+        with chat_container:
+            st.markdown('<div class="chat-history-container">', unsafe_allow_html=True)
+            for msg in st.session_state.get("messages", []):
+                with st.chat_message(msg["role"]):
+                    st.markdown(msg["content"])
+                    if msg.get("sources"):
+                        with st.expander("References"):
+                            for src in msg["sources"]:
+                                st.markdown(f'<div class="source-item">{SVGS["code"]} {src}</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # Input (Automatically fixed at bottom by Streamlit)
+        if prompt := st.chat_input("Ask about logic, patterns, or architecture..."):
             st.session_state.messages.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
+            st.rerun() # Rerun to show user message immediately inside container
+
+        # Handle Response generation after rerun
+        if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+             with st.spinner("Processing..."):
+                try:
+                    start = time.time()
+                    retriever = st.session_state.get("retriever")
+                    generator = st.session_state.get("generator")
+                    reranker = st.session_state.get("reranker")
+                    
+                    last_msg = st.session_state.messages[-1]["content"]
+                    results = retriever.search(last_msg, top_k=top_k*2)
+                    
+                    if results and use_reranking:
+                        results = reranker.rerank(last_msg, results, top_k=top_k)
+                    elif results:
+                        results = results[:top_k]
+                    
+                    if results:
+                        answer = generator.generate(last_msg, results)
+                    else:
+                        answer = "No relevant code segments found in the index."
+                    
+                    elapsed = time.time() - start
+                except Exception as e:
+                    answer = f"Error: {str(e)}"
+                    results = []
+                    elapsed = 0
             
-            with st.chat_message("assistant"):
-                with st.spinner("Analyzing code vectors..."):
-                    try:
-                        start = time.time()
-                        retriever = st.session_state.get("retriever")
-                        generator = st.session_state.get("generator")
-                        reranker = st.session_state.get("reranker")
-                        
-                        results = retriever.search(prompt, top_k=top_k*2)
-                        
-                        if results and use_reranking:
-                            results = reranker.rerank(prompt, results, top_k=top_k)
-                        elif results:
-                            results = results[:top_k]
-                        
-                        if results:
-                            answer = generator.generate(prompt, results)
-                        else:
-                            answer = "No relevant code found. Try a different question."
-                        
-                        elapsed = time.time() - start
-                    except Exception as e:
-                        answer = f"Error: {str(e)}"
-                        results = []
-                        elapsed = 0
-                
-                st.markdown(answer)
-                
                 sources = []
                 if results:
-                    with st.expander("📚 Referenced Sources"):
-                        for i, r in enumerate(results[:5], 1):
-                            meta = r.get("metadata", {})
-                            src_text = f"{meta.get('file_path', '?')} : {meta.get('name', '?')}"
-                            sources.append(src_text)
-                            st.markdown(f"""
-                            <div class="source-item">
-                                <b>{i}.</b> {src_text} 
-                                <span style="opacity: 0.5; margin-left: auto;">{meta.get('chunk_type', 'code')}</span>
-                            </div>
-                            """, unsafe_allow_html=True)
+                    for i, r in enumerate(results[:5], 1):
+                        meta = r.get("metadata", {})
+                        src_text = f"{meta.get('file_path', '?')} : {meta.get('name', '?')}"
+                        sources.append(src_text)
                 
-                st.caption(f"Generated in {elapsed:.2f}s")
                 st.session_state.messages.append({
                     "role": "assistant",
                     "content": answer,
                     "sources": sources
                 })
+                st.rerun()
 
     # --- TAB 2: EXPLAIN ---
     with tab2:
         col_ex1, col_ex2 = st.columns([1, 1])
         with col_ex1:
-            func_name = st.text_input("Target Name", placeholder="e.g. UserModel, process_data")
+            func_name = st.text_input("Target Function/Class", placeholder="e.g. process_request")
         with col_ex2:
-            file_path = st.text_input("File Context (Optional)", placeholder="src/models.py")
+            file_path = st.text_input("File Scope (Optional)", placeholder="src/main.py")
             
-        if st.button("Generate Explanation", type="primary", use_container_width=True):
+        if st.button("Analyze Logic", type="primary", use_container_width=True):
             if func_name:
-                with st.spinner("Analysing AST and Logic..."):
+                with st.spinner("Tracing AST..."):
                     try:
                         intelligence = st.session_state.get("intelligence")
                         result = intelligence.explain_function(func_name, file_path if file_path else None)
@@ -600,25 +658,25 @@ else:
                         if "error" in result:
                             st.warning(result["error"])
                         else:
-                            st.markdown(f"### 💡 {result['function_name']}")
-                            st.caption(f"📍 {result['file_path']} : Lines {result.get('start_line', '?')}-{result.get('end_line', '?')}")
+                            st.markdown(f"### {result['function_name']}")
+                            st.caption(f"Location: {result['file_path']} : Lines {result.get('start_line', '?')}-{result.get('end_line', '?')}")
                             
                             st.markdown("""<div class="glass-card">""", unsafe_allow_html=True)
                             st.markdown(result["explanation"])
                             st.markdown("</div>", unsafe_allow_html=True)
                             
-                            with st.expander("Show Original Code"):
+                            with st.expander("Source Code"):
                                 st.code(result["code"], language="python")
                     except Exception as e:
                         st.error(f"Analysis failed: {str(e)}")
 
     # --- TAB 3: SIMILAR ---
     with tab3:
-        code_snippet = st.text_area("Reference Code", placeholder="Paste a function or logic pattern here...", height=200)
+        code_snippet = st.text_area("Reference Logic", placeholder="Paste code snippet to find similar patterns...", height=200)
         
-        if st.button("Find Matches", type="primary"):
+        if st.button("Identify Patterns", type="primary"):
             if code_snippet:
-                with st.spinner("Computing vector similarity..."):
+                with st.spinner("Comparing vectors..."):
                     try:
                         intelligence = st.session_state.get("intelligence")
                         results = intelligence.find_similar_code(code_snippet, top_k=5)
@@ -628,16 +686,16 @@ else:
                                 st.markdown(f"""
                                 <div class="glass-card" style="margin-bottom: 1rem;">
                                     <div style="display: flex; justify-content: space-between;">
-                                        <h4 style="margin:0;">{r['name']}</h4>
-                                        <span style="color: var(--accent);">Match: {r['similarity_score']:.3f}</span>
+                                        <h4 style="margin:0; font-size: 1rem;">{r['name']}</h4>
+                                        <span style="color: var(--accent); font-weight: bold;">{r['similarity_score']:.2f} Match</span>
                                     </div>
-                                    <p style="color: #94a3b8; font-size: 0.8rem;">{r['file']} | Line {r['line']}</p>
+                                    <p style="color: #94a3b8; font-size: 0.8rem; margin-top: 5px;">{r['file']} | Line {r['line']}</p>
                                 </div>
                                 """, unsafe_allow_html=True)
-                                with st.expander(f"View Code: {r['name']}"):
+                                with st.expander(f"Code Preview"):
                                     st.code(r["code"], language="python")
                         else:
-                            st.info("No similar patterns found.")
+                            st.info("No statistically similar patterns found.")
                     except Exception as e:
                         st.error(str(e))
 
@@ -646,11 +704,11 @@ else:
         files = st.session_state.get("files", [])
         file_paths = [f.path for f in files] if files else []
         
-        selected_file = st.selectbox("Select Target File", file_paths if file_paths else ["No files"])
+        selected_file = st.selectbox("Target File", file_paths if file_paths else ["Index empty"])
         
-        if st.button("Generate Documentation", key="docs_btn"):
-            if selected_file and selected_file != "No files":
-                with st.spinner("Drafting documentation..."):
+        if st.button("Generate Docs", key="docs_btn"):
+            if selected_file and selected_file != "Index empty":
+                with st.spinner("Writing documentation..."):
                     try:
                         intelligence = st.session_state.get("intelligence")
                         docs = intelligence.generate_documentation(selected_file)
@@ -662,7 +720,7 @@ else:
     with tab5:
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("Full Codebase Scan", use_container_width=True):
+            if st.button("Run Global Analysis", use_container_width=True):
                 with st.spinner("Scanning structure..."):
                     try:
                         intelligence = st.session_state.get("intelligence")
@@ -671,38 +729,49 @@ else:
                     except Exception as e:
                         st.error(str(e))
         with c2:
-            if st.button("Find Symbol Usages", use_container_width=True):
+            if st.button("Trace Symbol Usage", use_container_width=True):
                 st.session_state.show_usage_input = True
 
         if "codebase_stats" in st.session_state:
             stats = st.session_state.codebase_stats
             
-            st.markdown("### Structural Overview")
-            sc1, sc2, sc3 = st.columns(3)
-            with sc1: st.metric("Total Files", stats.get('total_files', 0))
-            with sc2: st.metric("Code Chunks", stats.get('total_chunks', 0))
-            with sc3: st.metric("Defined Classes", len(stats.get('classes', [])))
-            
+            # Graph Visualization using Graphviz
+            st.subheader("Dependency Overview")
+            try:
+                graph = graphviz.Digraph()
+                graph.attr(bgcolor='transparent', fontcolor='white')
+                graph.attr('node', style='filled', color='#6366f1', fontcolor='white', fontname='Inter')
+                graph.attr('edge', color='#94a3b8')
+                
+                # Add nodes for top 5 files/classes to avoid clutter
+                for cls in stats.get("classes", [])[:5]:
+                     graph.node(cls["name"], shape="box")
+                     graph.edge("Root", cls["name"])
+                
+                st.graphviz_chart(graph)
+            except Exception:
+                st.caption("Graph visualization unavailable (Graphviz not installed).")
+
             st.markdown("---")
             d1, d2 = st.columns(2)
             with d1:
-                st.subheader("Classes")
+                st.markdown("##### Detected Classes")
                 for cls in stats.get("classes", [])[:10]:
-                    st.markdown(f'<div class="source-item">📦 {cls["name"]} <span style="color: #64748b; margin-left: auto;">{cls["file"]}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="source-item">{SVGS["box"]} {cls["name"]} <span style="color: #64748b; margin-left: auto;">{cls["file"]}</span></div>', unsafe_allow_html=True)
             with d2:
-                st.subheader("Functions")
+                st.markdown("##### Detected Functions")
                 for func in stats.get("functions", [])[:10]:
-                    st.markdown(f'<div class="source-item">🔧 {func["name"]} <span style="color: #64748b; margin-left: auto;">{func["file"]}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="source-item">{SVGS["code"]} {func["name"]} <span style="color: #64748b; margin-left: auto;">{func["file"]}</span></div>', unsafe_allow_html=True)
 
         if st.session_state.get("show_usage_input", False):
             st.divider()
             usage_name = st.text_input("Enter symbol name", key="usage_input", placeholder="e.g. BaseLoader")
-            if st.button("Trace Usages"):
-                with st.spinner("Tracing..."):
+            if st.button("Trace"):
+                with st.spinner("Mapping references..."):
                     try:
                         intelligence = st.session_state.get("intelligence")
                         usages = intelligence.find_usages(usage_name)
-                        st.success(f"Found {usages['total_usages']} occurrences")
+                        st.success(f"Found {usages['total_usages']} references")
                         
                         udata = usages.get("usages", {})
                         if udata.get("definition"):
@@ -710,7 +779,7 @@ else:
                             st.markdown(f"**Definition:** `{d['file']}:{d['line']}`")
                         
                         if udata.get("calls"):
-                            st.markdown("**References:**")
+                            st.markdown("**Call Sites:**")
                             for call in udata["calls"][:10]:
                                 st.markdown(f"- `{call['file']}` at line {call['line']}")
                     except Exception as e:
