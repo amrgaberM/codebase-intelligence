@@ -77,7 +77,7 @@ st.markdown("""
         padding: 5rem 2rem;
         background: radial-gradient(circle at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
         border-radius: 30px;
-        margin-bottom: 3rem;
+        margin-bottom: 2rem;
         border: 1px solid var(--border);
         box-shadow: 0 0 80px -20px rgba(99, 102, 241, 0.15);
     }
@@ -138,7 +138,7 @@ st.markdown("""
     .hud-container {
         display: flex;
         gap: 1.5rem;
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
         flex-wrap: wrap;
     }
     
@@ -146,7 +146,7 @@ st.markdown("""
         flex: 1;
         background: rgba(15, 23, 42, 0.8);
         border: 1px solid var(--border);
-        padding: 1.25rem;
+        padding: 1rem;
         border-radius: 12px;
         min-width: 160px;
         position: relative;
@@ -163,7 +163,7 @@ st.markdown("""
     }
     .hud-item:last-child::before { background: var(--accent); }
 
-    .hud-value { font-size: 1.75rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+    .hud-value { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 0.1rem; }
     .hud-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.1em; }
 
     /* Timeline Steps */
@@ -192,13 +192,21 @@ st.markdown("""
     }
 
     /* Fixed Chat History Container */
+    /* Increased height to reduce gap with bottom input */
     .chat-history-container {
-        height: calc(100vh - 350px);
+        height: calc(100vh - 270px);
         overflow-y: auto;
         padding-right: 15px;
-        padding-bottom: 20px;
+        padding-bottom: 50px; /* Space for input not to cover last msg */
         padding-top: 10px;
         scrollbar-width: thin;
+        position: relative;
+    }
+    
+    /* Optimize Chat Input to reduce apparent distance */
+    .stChatInputContainer {
+        padding-bottom: 20px;
+        background: linear-gradient(0deg, #0f1117 90%, transparent);
     }
     
     .chat-status-bar {
@@ -207,7 +215,7 @@ st.markdown("""
         background: rgba(99, 102, 241, 0.1);
         padding: 8px 12px;
         border-radius: 8px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
         border: 1px solid var(--border);
         display: flex;
         align-items: center;
@@ -288,6 +296,7 @@ st.markdown("""
         padding: 5px;
         border-radius: 12px;
         border: 1px solid var(--border);
+        margin-bottom: 0.5rem;
     }
     .stTabs [data-baseweb="tab"] {
         height: 40px;
