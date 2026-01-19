@@ -3,6 +3,11 @@ import time
 import shutil
 from pathlib import Path
 import sys
+import os
+
+# Disable ChromaDB telemetry globally
+os.environ["CHROMA_TELEMETRY"] = "false"
+
 
 # Ensure src folder is importable
 sys.path.insert(0, str(Path(__file__).parent))
@@ -17,6 +22,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
 
 # CSS styling omitted for brevity (keep your current CSS here)
 
