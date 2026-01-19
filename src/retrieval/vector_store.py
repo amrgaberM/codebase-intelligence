@@ -1,8 +1,6 @@
 """Vector store implementation using ChromaDB."""
 
-from pathlib import Path
 from typing import Dict, List, Optional, Any
-import shutil
 
 import chromadb
 
@@ -15,12 +13,9 @@ class VectorStore:
     def __init__(
         self,
         collection_name: Optional[str] = None,
-        persist_directory: Optional[str] = None,
-        embedder = None,
+        embedder=None,
     ):
         self.collection_name = collection_name or "codebase"
-        self.persist_directory = persist_directory or "./data/vectors"
-        
         self._embedder = embedder
         self._client = None
         self._collection = None
@@ -49,15 +44,24 @@ class VectorStore:
             )
         return self._collection
     
+    def reset(self) -> None:
+        """Completely reset the vector store - new client and collection."""
+        logger.info("Resetting vector store completely...")
+        
+        # Force create a brand new client (discards all in-memory data)
+        self._client = chromadb.EphemeralClient()
+        self._collection = None
+        
+        logger.info("Vector store reset complete")
+    
     def add_chunks(self, chunks: List, batch_size: int = 50) -> None:
-        """Add chunks to vector store. Clears existing data first."""
+        """Add chunks to vector store. Resets existing data first."""
         if not chunks:
             logger.warning("No chunks to add")
             return
         
-        # IMPORTANT: Clear existing collection to prevent duplicates
-        logger.info("Clearing existing collection before indexing...")
-        self.delete_collection()
+        # IMPORTANT: Complete reset before adding new chunks
+        self.reset()
         
         logger.info(f"Adding {len(chunks)} chunks to vector store")
         
@@ -89,8 +93,8 @@ class VectorStore:
         filter_dict: Optional[Dict] = None,
     ) -> List[Dict[str, Any]]:
         """Search for similar chunks."""
-        # Check if collection has any data
-        if self.collection.count() == 0:
+        count = self.collection.count()
+        if count == 0:
             logger.warning("Collection is empty, no results to return")
             return []
         
@@ -99,7 +103,7 @@ class VectorStore:
         
         results = self.collection.query(
             query_embeddings=[query_embedding.tolist()],
-            n_results=min(top_k, self.collection.count()),  # Don't request more than exists
+            n_results=min(top_k, count),
             where=where,
             include=["documents", "metadatas", "distances"],
         )
@@ -118,14 +122,7 @@ class VectorStore:
     
     def delete_collection(self) -> None:
         """Delete the collection and reset state."""
-        try:
-            self.client.delete_collection(self.collection_name)
-            logger.info(f"Deleted collection: {self.collection_name}")
-        except Exception as e:
-            logger.debug(f"Collection delete (may not exist): {e}")
-        
-        # Reset cached collection so it gets recreated fresh
-        self._collection = None
+        self.reset()
     
     def get_stats(self) -> Dict[str, Any]:
         """Get collection statistics."""
