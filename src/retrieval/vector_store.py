@@ -1,4 +1,4 @@
-﻿"""Vector store implementation using ChromaDB."""
+"""Vector store implementation using ChromaDB."""
 
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -20,11 +20,6 @@ class VectorStore:
     ):
         self.collection_name = collection_name or "codebase"
         self.persist_directory = persist_directory or "./data/vectors"
-        
-        # Clear old data
-        vectors_path = Path(self.persist_directory)
-        if vectors_path.exists():
-            shutil.rmtree(vectors_path, ignore_errors=True)
         
         self._embedder = embedder
         self._client = None
@@ -55,9 +50,14 @@ class VectorStore:
         return self._collection
     
     def add_chunks(self, chunks: List, batch_size: int = 50) -> None:
+        """Add chunks to vector store. Clears existing data first."""
         if not chunks:
             logger.warning("No chunks to add")
             return
+        
+        # IMPORTANT: Clear existing collection to prevent duplicates
+        logger.info("Clearing existing collection before indexing...")
+        self.delete_collection()
         
         logger.info(f"Adding {len(chunks)} chunks to vector store")
         
@@ -88,42 +88,54 @@ class VectorStore:
         top_k: int = 10,
         filter_dict: Optional[Dict] = None,
     ) -> List[Dict[str, Any]]:
+        """Search for similar chunks."""
+        # Check if collection has any data
+        if self.collection.count() == 0:
+            logger.warning("Collection is empty, no results to return")
+            return []
+        
         query_embedding = self.embedder.embed_query(query)
         where = filter_dict if filter_dict else None
         
         results = self.collection.query(
             query_embeddings=[query_embedding.tolist()],
-            n_results=top_k,
+            n_results=min(top_k, self.collection.count()),  # Don't request more than exists
             where=where,
             include=["documents", "metadatas", "distances"],
         )
         
         formatted = []
-        for i in range(len(results["ids"][0])):
-            formatted.append({
-                "chunk_id": results["ids"][0][i],
-                "content": results["documents"][0][i],
-                "metadata": results["metadatas"][0][i],
-                "score": 1 - results["distances"][0][i],
-            })
+        if results["ids"] and results["ids"][0]:
+            for i in range(len(results["ids"][0])):
+                formatted.append({
+                    "chunk_id": results["ids"][0][i],
+                    "content": results["documents"][0][i],
+                    "metadata": results["metadatas"][0][i],
+                    "score": 1 - results["distances"][0][i],
+                })
         
         return formatted
     
     def delete_collection(self) -> None:
+        """Delete the collection and reset state."""
         try:
             self.client.delete_collection(self.collection_name)
-        except:
-            pass
+            logger.info(f"Deleted collection: {self.collection_name}")
+        except Exception as e:
+            logger.debug(f"Collection delete (may not exist): {e}")
+        
+        # Reset cached collection so it gets recreated fresh
         self._collection = None
-        logger.info(f"Deleted collection: {self.collection_name}")
     
     def get_stats(self) -> Dict[str, Any]:
+        """Get collection statistics."""
         return {
             "name": self.collection_name,
             "count": self.collection.count(),
         }
     
     def _prepare_metadata(self, chunk) -> Dict[str, Any]:
+        """Prepare metadata for storage in ChromaDB."""
         metadata = {
             "file_path": chunk.file_path,
             "chunk_type": chunk.chunk_type,
