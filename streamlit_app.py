@@ -18,7 +18,7 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# SVG ICONS (Refined for a cleaner look)
+# SVG ICONS
 # -----------------------------------------------------------------------------
 SVGS = {
     "zap": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>""",
@@ -76,11 +76,11 @@ st.markdown("""
         font-size: 4rem;
         font-weight: 800;
         letter-spacing: -0.04em;
-        line-height: 1;
+        line-height: 1.1;
         background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
     }
     .hero-subtitle {
         font-size: 1.25rem;
@@ -132,7 +132,7 @@ st.markdown("""
         padding: 0.5rem 1rem;
         border-radius: 6px;
         font-size: 0.8rem;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -143,12 +143,13 @@ st.markdown("""
         background: transparent;
         border-bottom: 1px solid var(--border-color);
         gap: 24px;
+        margin-bottom: 1rem;
     }
     .stTabs [data-baseweb="tab"] {
         padding: 10px 0;
-        background: transparent;
-        border: none;
-        color: var(--text-muted);
+        background: transparent !important;
+        border: none !important;
+        color: var(--text-muted) !important;
         font-weight: 500;
         font-size: 0.9rem;
     }
@@ -173,12 +174,6 @@ st.markdown("""
         transform: translateY(-1px);
     }
 
-    /* Tree View */
-    .tree-view { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
-    .tree-node { padding-left: 1.2rem; border-left: 1px solid rgba(255,255,255,0.1); margin: 4px 0; }
-    .tree-leaf { color: var(--text-muted); }
-    .tree-root { color: var(--primary); font-weight: 600; }
-
     /* Source Links */
     .source-item {
         background: rgba(255,255,255,0.03);
@@ -193,7 +188,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# SESSION STATE & HELPERS (Logic preserved exactly)
+# SESSION STATE & HELPERS
 # -----------------------------------------------------------------------------
 if "retriever" not in st.session_state:
     st.session_state.retriever = None
@@ -206,8 +201,6 @@ if "retriever" not in st.session_state:
     st.session_state.files_count = 0
     st.session_state.chunks_count = 0
     st.session_state.files = None
-    st.session_state.show_estimate = False
-    st.session_state.estimated_time = 0
 
 def clear_database():
     vectors_path = Path("data/vectors")
@@ -219,39 +212,13 @@ def clear_database():
     for key in list(st.session_state.keys()):
         del st.session_state[key]
 
-def estimate_time(repo_url: str) -> dict:
-    import requests
-    try:
-        parts = repo_url.rstrip('/').rstrip('.git').split('/')
-        owner, repo = parts[-2], parts[-1]
-        api_url = f"https://api.github.com/repos/{owner}/{repo}"
-        response = requests.get(api_url, timeout=10)
-        if response.status_code == 200:
-            data = response.json()
-            size_kb = data.get('size', 0)
-            est_files = max(10, size_kb // 5)
-            est_chunks = est_files * 4
-            est_seconds = int(est_chunks * 0.3) + 10
-            return {
-                "success": True,
-                "repo_name": data.get('full_name', f"{owner}/{repo}"),
-                "size_kb": size_kb,
-                "stars": data.get('stargazers_count', 0),
-                "est_files": est_files,
-                "est_chunks": est_chunks,
-                "est_seconds": est_seconds,
-                "est_time_str": f"{est_seconds // 60}m {est_seconds % 60}s" if est_seconds >= 60 else f"{est_seconds}s"
-            }
-    except Exception: pass
-    return {"success": False}
-
 def index_repository(repo_url, progress_callback=None):
     from src.ingestion import GitHubLoader
     from src.chunking import ASTChunker
     from src.retrieval import HybridRetriever, LightweightReranker
     from src.generation import CodeGenerator, CodeIntelligence
     
-    if progress_callback: progress_callback(10, "Cloning...")
+    if progress_callback: progress_callback(10, "Cloning repository...")
     loader = GitHubLoader()
     files = loader.clone_repo(repo_url)
     
@@ -259,13 +226,13 @@ def index_repository(repo_url, progress_callback=None):
     chunker = ASTChunker()
     chunks = chunker.chunk_files(files)
     
-    if progress_callback: progress_callback(50, f"Indexing...")
+    if progress_callback: progress_callback(50, f"Generating vectors...")
     retriever = HybridRetriever()
     generator = CodeGenerator()
     reranker = LightweightReranker()
     retriever.index(chunks, files)
     
-    if progress_callback: progress_callback(90, "Finalizing...")
+    if progress_callback: progress_callback(90, "Finalizing engine...")
     intelligence = CodeIntelligence(retriever, generator)
     
     return {
@@ -289,28 +256,7 @@ with st.sidebar:
     
     st.caption("CONNECT REPOSITORY")
     repo_url = st.text_input("Repo URL", placeholder="https://github.com/...", label_visibility="collapsed")
-    
-    c_idx, c_est = st.columns([2, 1])
-    with c_idx:
-        index_btn = st.button("Index Library", type="primary", use_container_width=True)
-    with c_est:
-        est_btn = st.button("Calc", use_container_width=True)
-
-    if est_btn and repo_url:
-        with st.spinner("..."):
-            est = estimate_time(repo_url)
-            if est["success"]:
-                st.session_state.show_estimate = True
-                st.session_state.estimate_data = est
-
-    if st.session_state.get("show_estimate", False):
-        e = st.session_state.estimate_data
-        st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-top: 10px;">
-            <div style="color: var(--primary); font-weight: 700;">{e['est_time_str']}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">{e['est_files']} files / {e['size_kb']} KB</div>
-        </div>
-        """, unsafe_allow_html=True)
+    index_btn = st.button("Index Library", type="primary", use_container_width=True)
 
     if index_btn and repo_url:
         try:
@@ -331,8 +277,8 @@ with st.sidebar:
 
     if st.session_state.indexed:
         st.markdown("<br>", unsafe_allow_html=True)
-        st.caption("CONFIGURATION")
-        top_k = st.slider("Context Window", 1, 15, 5)
+        st.caption("SETTINGS")
+        top_k = st.slider("Context Nodes", 1, 15, 5)
         use_reranking = st.checkbox("Semantic Rerank", True)
         if st.button("Clear Session", use_container_width=True):
             clear_database()
@@ -351,9 +297,9 @@ if not st.session_state.indexed:
 
     c1, c2, c3 = st.columns(3)
     features = [
-        {"icon": SVGS['chat'], "title": "Contextual QA", "desc": "Chat with your source code."},
-        {"icon": SVGS['layers'], "title": "AST Chunking", "desc": "Aware of code structures."},
-        {"icon": SVGS['git'], "title": "Auto-Docs", "desc": "Generate technical guides."}
+        {"icon": SVGS['chat'], "title": "Contextual QA", "desc": "Chat with your source code logic directly."},
+        {"icon": SVGS['layers'], "title": "AST Chunking", "desc": "Aware of code structures, not just text blocks."},
+        {"icon": SVGS['git'], "title": "Auto-Docs", "desc": "Generate technical documentation from logic traces."}
     ]
     for col, f in zip([c1, c2, c3], features):
         with col:
@@ -366,7 +312,7 @@ if not st.session_state.indexed:
             """, unsafe_allow_html=True)
 
     st.markdown("<br><br><br>", unsafe_allow_html=True)
-    st.caption("QUICK START EXAMPLES")
+    st.caption("TRY THESE LIBRARIES")
     r1, r2, r3 = st.columns(3)
     for col, url in zip([r1,r2,r3], ["tiangolo/typer", "psf/requests", "pallets/flask"]):
         with col: st.code(f"https://github.com/{url}")
@@ -403,32 +349,34 @@ else:
 
     # --- CHAT TAB ---
     with tab_chat:
-        st.markdown('<div class="chat-status-bar"><span>●</span> Knowledge base synced. Indexing active.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chat-status-bar"><span>●</span> Knowledge base connected. Ready for queries.</div>', unsafe_allow_html=True)
         
-        # Display existing messages
-        for msg in st.session_state.messages:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
-                if msg.get("sources"):
-                    with st.expander("References"):
-                        for s in msg["sources"]:
-                            st.markdown(f'<div class="source-item">{SVGS["code"]} {s}</div>', unsafe_allow_html=True)
-
-        if prompt := st.chat_input("Ask about logic flow or architecture..."):
+        # This container holds the message history
+        message_container = st.container()
+        
+        # Always-at-bottom input
+        if prompt := st.chat_input("Ask about logic flow, architecture, or specific functions..."):
             st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun()
-
-        # Handle Generation (Post-Rerun)
-        if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-            with st.spinner("Analyzing context..."):
+            
+            # Immediately show user message
+            with message_container:
+                for msg in st.session_state.messages:
+                    with st.chat_message(msg["role"]):
+                        st.markdown(msg["content"])
+                        if msg.get("sources"):
+                            with st.expander("References"):
+                                for s in msg["sources"]:
+                                    st.markdown(f'<div class="source-item">{SVGS["code"]} {s}</div>', unsafe_allow_html=True)
+            
+            # Generate response
+            with st.spinner("Analyzing code context..."):
                 try:
-                    query = st.session_state.messages[-1]["content"]
-                    res = st.session_state.retriever.search(query, top_k=top_k*2)
+                    res = st.session_state.retriever.search(prompt, top_k=top_k*2)
                     if res and use_reranking:
-                        res = st.session_state.reranker.rerank(query, res, top_k=top_k)
+                        res = st.session_state.reranker.rerank(prompt, res, top_k=top_k)
                     elif res: res = res[:top_k]
                     
-                    answer = st.session_state.generator.generate(query, res) if res else "Context not found."
+                    answer = st.session_state.generator.generate(prompt, res) if res else "I couldn't find specific code context for that query."
                     sources = [f"{r['metadata'].get('file_path')} : {r['metadata'].get('name')}" for r in res] if res else []
                     
                     st.session_state.messages.append({
@@ -436,16 +384,28 @@ else:
                     })
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Engine Error: {e}")
+                    st.error(f"Analysis Error: {e}")
+        else:
+            # Display history if no new input
+            with message_container:
+                if not st.session_state.messages:
+                    st.markdown('<p style="color:var(--text-muted); text-align:center; padding: 2rem;">Ask anything about the repository structure or implementation.</p>', unsafe_allow_html=True)
+                for msg in st.session_state.messages:
+                    with st.chat_message(msg["role"]):
+                        st.markdown(msg["content"])
+                        if msg.get("sources"):
+                            with st.expander("References"):
+                                for s in msg["sources"]:
+                                    st.markdown(f'<div class="source-item">{SVGS["code"]} {s}</div>', unsafe_allow_html=True)
 
     # --- LOGIC EXPLAINER ---
     with tab_explain:
         col_l, col_r = st.columns(2)
-        with col_l: target = st.text_input("Function/Class Name", placeholder="e.g. build_tree")
-        with col_r: scope = st.text_input("Path (Optional)", placeholder="src/core.py")
+        with col_l: target = st.text_input("Target Symbol", placeholder="e.g. process_data")
+        with col_r: scope = st.text_input("File Scope (Optional)", placeholder="src/main.py")
         
-        if st.button("Generate Explanation", type="primary", use_container_width=True):
-            with st.spinner("Tracing..."):
+        if st.button("Trace Logic", type="primary", use_container_width=True):
+            with st.spinner("Parsing AST..."):
                 try:
                     res = st.session_state.intelligence.explain_function(target, scope if scope else None)
                     if "error" in res: st.warning(res["error"])
@@ -453,16 +413,16 @@ else:
                         st.markdown(f"### {res['function_name']}")
                         st.markdown(f"<p style='color:var(--text-muted); font-size:0.8rem;'>{res['file_path']} : L{res.get('start_line')}</p>", unsafe_allow_html=True)
                         st.markdown(f'<div class="glass-card">{res["explanation"]}</div>', unsafe_allow_html=True)
-                        with st.expander("Source"): st.code(res["code"], "python")
+                        with st.expander("Source Code"): st.code(res["code"], "python")
                 except Exception as e: st.error(e)
 
     # --- PATTERN MATCH ---
     with tab_pattern:
-        snippet = st.text_area("Reference Logic Snippet", placeholder="Paste code to find clones...", height=150)
-        if st.button("Identify Similar Logic", type="primary"):
+        snippet = st.text_area("Reference Logic Snippet", placeholder="Paste code to find clones or similar logic...", height=150)
+        if st.button("Identify Clones", type="primary"):
             with st.spinner("Vector scanning..."):
                 res = st.session_state.intelligence.find_similar_code(snippet, 5)
-                if not res: st.info("No clones found.")
+                if not res: st.info("No statistically similar patterns found.")
                 for r in res:
                     st.markdown(f"""
                     <div class="glass-card" style="margin-bottom:0.8rem;">
@@ -479,33 +439,34 @@ else:
     with tab_docs:
         f_list = [f.path for f in st.session_state.files] if st.session_state.files else []
         sel = st.selectbox("Select Target File", f_list)
-        if st.button("Build Documentation"):
-            with st.spinner("Generating markdown..."):
+        if st.button("Generate Markdown Docs"):
+            with st.spinner("Generating documentation..."):
                 doc = st.session_state.intelligence.generate_documentation(sel)
                 st.markdown(f'<div class="glass-card">{doc}</div>', unsafe_allow_html=True)
 
     # --- ANALYZE ---
     with tab_anal:
-        if st.button("Run Global Scan"):
-            with st.spinner("Mapping AST..."):
+        if st.button("Run Comprehensive Scan"):
+            with st.spinner("Analyzing codebase architecture..."):
                 stats = st.session_state.intelligence.analyze_codebase()
                 st.session_state.codebase_stats = stats
         
         if "codebase_stats" in st.session_state:
             s = st.session_state.codebase_stats
-            st.markdown("#### Logic Tree")
-            tree = '<div class="tree-view"><div class="tree-root">📦 Project Root</div>'
+            st.markdown("#### Structural Tree")
+            tree = '<div style="font-family: monospace; font-size: 0.85rem; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px;">'
+            tree += '<div style="color: var(--primary); font-weight: bold;">📦 Root</div>'
             for c in s.get("classes", [])[:10]:
-                tree += f'<div class="tree-node"><span class="tree-leaf">Class</span> {c["name"]}</div>'
+                tree += f'<div style="margin-left: 20px;">├── <span style="color:#fff;">Class</span> {c["name"]}</div>'
             tree += '</div>'
             st.markdown(tree, unsafe_allow_html=True)
             
             c1, c2 = st.columns(2)
             with c1:
-                st.caption("CLASSES")
+                st.caption("DETECTED CLASSES")
                 for c in s.get("classes", [])[:15]:
                     st.markdown(f'<div class="source-item">{c["name"]}</div>', unsafe_allow_html=True)
             with c2:
-                st.caption("FUNCTIONS")
+                st.caption("DETECTED FUNCTIONS")
                 for f in s.get("functions", [])[:15]:
                     st.markdown(f'<div class="source-item">{f["name"]}</div>', unsafe_allow_html=True)
