@@ -18,7 +18,7 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# SVG ICONS
+# SVG ICONS (Refined for a cleaner look)
 # -----------------------------------------------------------------------------
 SVGS = {
     "zap": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>""",
@@ -36,305 +36,164 @@ SVGS = {
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
-    /* Global Variables & Reset */
+    /* Global Styling */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    
     :root {
         --primary: #6366f1;
-        --secondary: #8b5cf6;
-        --accent: #06b6d4;
-        --bg-dark: #0f1117;
-        --bg-card: rgba(20, 25, 40, 0.7);
-        --text-primary: #f8fafc;
-        --text-secondary: #94a3b8;
-        --border: rgba(99, 102, 241, 0.15);
-    }
-    
-    @keyframes gradientBG {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
+        --secondary: #4f46e5;
+        --bg-main: #0a0b10;
+        --bg-card: rgba(17, 24, 39, 0.7);
+        --border-color: rgba(255, 255, 255, 0.08);
+        --text-muted: #94a3b8;
     }
 
-    /* App Background */
     .stApp {
-        background: linear-gradient(-45deg, #0f1117, #1e1b4b, #0f0f15, #111827);
-        background-size: 400% 400%;
-        animation: gradientBG 15s ease infinite;
-        color: var(--text-primary);
+        background-color: var(--bg-main);
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+        color: #f8fafc;
     }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+    /* Hide redundant elements */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
 
     /* Typography */
-    h1, h2, h3, h4, h5, h6 { font-family: 'Inter', sans-serif; letter-spacing: -0.01em; }
-    
-    /* Hero Section */
+    h1, h2, h3 { font-family: 'Inter', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace !important; }
+
+    /* Hero & Landing */
     .hero-container {
+        padding: 6rem 2rem;
         text-align: center;
-        padding: 5rem 2rem;
-        background: radial-gradient(circle at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
-        border-radius: 30px;
-        margin-bottom: 2rem;
-        border: 1px solid var(--border);
-        box-shadow: 0 0 80px -20px rgba(99, 102, 241, 0.15);
+        max-width: 900px;
+        margin: 0 auto;
     }
-    
     .hero-title {
-        font-size: 4.5rem;
+        font-size: 4rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #fff 20%, #818cf8 100%);
+        letter-spacing: -0.04em;
+        line-height: 1;
+        background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 1.5rem;
-        text-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        margin-bottom: 1rem;
     }
-    
     .hero-subtitle {
         font-size: 1.25rem;
-        color: var(--text-secondary);
-        max-width: 650px;
-        margin: 0 auto;
+        color: var(--text-muted);
         line-height: 1.6;
     }
 
-    /* Cards */
+    /* Professional Card UI */
     .glass-card {
         background: var(--bg-card);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid var(--border);
-        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
         padding: 1.5rem;
-        height: 100%;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: border 0.3s ease;
+    }
+    .glass-card:hover {
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    /* Sidebar Customization */
+    section[data-testid="stSidebar"] {
+        background-color: #0d0f14;
+        border-right: 1px solid var(--border-color);
+        padding: 1.5rem 0.5rem;
     }
     
-    .glass-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(99, 102, 241, 0.5);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Icon Box */
-    .icon-box {
-        width: 52px;
-        height: 52px;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.15));
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1rem;
-        color: #a5b4fc;
-        border: 1px solid rgba(99, 102, 241, 0.2);
-    }
-    .icon-box svg { width: 26px; height: 26px; }
-
     /* HUD Stats */
     .hud-container {
-        display: flex;
-        gap: 1.5rem;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
     }
-    
     .hud-item {
-        flex: 1;
-        background: rgba(15, 23, 42, 0.8);
-        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border-color);
         padding: 1rem;
-        border-radius: 12px;
-        min-width: 160px;
-        position: relative;
-        overflow: hidden;
+        border-radius: 10px;
+        text-align: left;
     }
-    .hud-item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: var(--primary);
-    }
-    .hud-item:last-child::before { background: var(--accent); }
+    .hud-value { font-size: 1.5rem; font-weight: 700; color: #fff; }
+    .hud-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.1em; }
 
-    .hud-value { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 0.1rem; }
-    .hud-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.1em; }
-
-    /* Timeline Steps */
-    .step-card {
-        background: rgba(15, 23, 42, 0.4);
-        border: 1px dashed var(--border);
-        border-radius: 16px;
-        padding: 2rem 1.5rem;
-        text-align: center;
-        position: relative;
-        transition: 0.3s;
-    }
-    .step-card:hover { background: rgba(15, 23, 42, 0.8); border-style: solid; }
-    .step-badge {
-        position: absolute;
-        top: -14px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: linear-gradient(90deg, var(--primary), var(--secondary));
-        color: white;
-        font-weight: 700;
-        padding: 4px 12px;
-        border-radius: 100px;
-        font-size: 0.85rem;
-        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
-    }
-
-    /* Fixed Chat History Container */
-    /* Increased height to reduce gap with bottom input */
-    .chat-history-container {
-        height: calc(100vh - 270px);
-        overflow-y: auto;
-        padding-right: 15px;
-        padding-bottom: 50px; /* Space for input not to cover last msg */
-        padding-top: 10px;
-        scrollbar-width: thin;
-        position: relative;
-    }
-    
-    /* Optimize Chat Input to reduce apparent distance */
-    .stChatInputContainer {
-        padding-bottom: 20px;
-        background: linear-gradient(0deg, #0f1117 90%, transparent);
-    }
-    
+    /* Fix Chat Viewport & Formatting */
     .chat-status-bar {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
         font-size: 0.8rem;
-        color: var(--text-secondary);
-        background: rgba(99, 102, 241, 0.1);
-        padding: 8px 12px;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        border: 1px solid var(--border);
+        margin-bottom: 1rem;
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
-    /* Tree View CSS */
-    .tree-view {
-        font-family: 'JetBrains Mono', monospace;
-        color: #e2e8f0;
-        padding: 1rem;
+    /* Modern Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        background: transparent;
+        border-bottom: 1px solid var(--border-color);
+        gap: 24px;
     }
-    .tree-node {
-        margin-left: 1.5rem;
-        position: relative;
-        padding-left: 0.5rem;
-        border-left: 1px dashed var(--primary);
-        line-height: 2;
+    .stTabs [data-baseweb="tab"] {
+        padding: 10px 0;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-weight: 500;
+        font-size: 0.9rem;
     }
-    .tree-node::before {
-        content: '';
-        position: absolute;
-        top: 14px;
-        left: 0;
-        width: 10px;
-        height: 1px;
-        background: var(--primary);
-    }
-    .tree-root { font-weight: bold; color: var(--accent); margin-bottom: 0.5rem; }
-    .tree-leaf { color: #94a3b8; }
-
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background-color: #080a0f;
-        border-right: 1px solid var(--border);
-    }
-    
-    /* Inputs */
-    .stTextInput input, .stTextArea textarea, .stSelectbox > div > div {
-        background-color: rgba(30, 41, 59, 0.6) !important;
-        border: 1px solid rgba(148, 163, 184, 0.15) !important;
-        color: #e2e8f0 !important;
-        border-radius: 10px !important;
-        transition: 0.2s;
-    }
-    .stTextInput input:focus, .stTextArea textarea:focus {
-        border-color: var(--primary) !important;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
-        background-color: rgba(30, 41, 59, 0.9) !important;
+    .stTabs [aria-selected="true"] {
+        color: #fff !important;
+        border-bottom: 2px solid var(--primary) !important;
     }
 
     /* Buttons */
     .stButton button {
-        border-radius: 10px;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        transition: all 0.25s;
-        border: none;
+        border-radius: 8px;
+        height: 42px;
+        transition: 0.2s;
     }
     .stButton button[kind="primary"] {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
-    }
-    .stButton button[kind="secondary"] {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--border);
-        color: var(--text-secondary);
-    }
-    .stButton button:hover {
-        transform: translateY(-2px);
-        filter: brightness(1.1);
-    }
-
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
-        background: rgba(15, 23, 42, 0.5);
-        padding: 5px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        margin-bottom: 0.5rem;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 40px;
-        background-color: transparent;
+        background: var(--primary);
         border: none;
-        color: var(--text-secondary);
-        font-weight: 500;
-        border-radius: 8px;
+        font-weight: 600;
     }
-    .stTabs [aria-selected="true"] {
-        background-color: rgba(99, 102, 241, 0.2);
-        color: #fff;
+    .stButton button[kind="primary"]:hover {
+        background: var(--secondary);
+        transform: translateY(-1px);
     }
 
-    /* Source Item */
+    /* Tree View */
+    .tree-view { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+    .tree-node { padding-left: 1.2rem; border-left: 1px solid rgba(255,255,255,0.1); margin: 4px 0; }
+    .tree-leaf { color: var(--text-muted); }
+    .tree-root { color: var(--primary); font-weight: 600; }
+
+    /* Source Links */
     .source-item {
-        background: rgba(15, 23, 42, 0.6);
-        border: 1px solid rgba(148, 163, 184, 0.1);
-        border-radius: 8px;
-        padding: 0.85rem;
-        margin-bottom: 0.5rem;
-        font-family: 'JetBrains Mono', monospace;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border-color);
+        padding: 0.5rem;
+        border-radius: 6px;
+        margin-top: 5px;
         font-size: 0.8rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
         color: #cbd5e1;
     }
-    .source-item svg { width: 14px; height: 14px; opacity: 0.7; }
-    
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# SESSION STATE & HELPERS
+# SESSION STATE & HELPERS (Logic preserved exactly)
 # -----------------------------------------------------------------------------
 if "retriever" not in st.session_state:
     st.session_state.retriever = None
@@ -361,14 +220,12 @@ def clear_database():
         del st.session_state[key]
 
 def estimate_time(repo_url: str) -> dict:
-    """Estimate indexing time based on repo size."""
     import requests
     try:
         parts = repo_url.rstrip('/').rstrip('.git').split('/')
         owner, repo = parts[-2], parts[-1]
         api_url = f"https://api.github.com/repos/{owner}/{repo}"
         response = requests.get(api_url, timeout=10)
-        
         if response.status_code == 200:
             data = response.json()
             size_kb = data.get('size', 0)
@@ -385,8 +242,7 @@ def estimate_time(repo_url: str) -> dict:
                 "est_seconds": est_seconds,
                 "est_time_str": f"{est_seconds // 60}m {est_seconds % 60}s" if est_seconds >= 60 else f"{est_seconds}s"
             }
-    except Exception as e:
-        pass
+    except Exception: pass
     return {"success": False}
 
 def index_repository(repo_url, progress_callback=None):
@@ -395,7 +251,7 @@ def index_repository(repo_url, progress_callback=None):
     from src.retrieval import HybridRetriever, LightweightReranker
     from src.generation import CodeGenerator, CodeIntelligence
     
-    if progress_callback: progress_callback(10, "Cloning repository...")
+    if progress_callback: progress_callback(10, "Cloning...")
     loader = GitHubLoader()
     files = loader.clone_repo(repo_url)
     
@@ -403,439 +259,253 @@ def index_repository(repo_url, progress_callback=None):
     chunker = ASTChunker()
     chunks = chunker.chunk_files(files)
     
-    if progress_callback: progress_callback(50, f"Indexing {len(chunks)} chunks...")
+    if progress_callback: progress_callback(50, f"Indexing...")
     retriever = HybridRetriever()
     generator = CodeGenerator()
     reranker = LightweightReranker()
     retriever.index(chunks, files)
     
-    if progress_callback: progress_callback(90, "Building intelligence...")
+    if progress_callback: progress_callback(90, "Finalizing...")
     intelligence = CodeIntelligence(retriever, generator)
     
     return {
-        "files": files,
-        "chunks": chunks,
-        "retriever": retriever,
-        "generator": generator,
-        "reranker": reranker,
-        "intelligence": intelligence,
+        "files": files, "chunks": chunks, "retriever": retriever, "generator": generator,
+        "reranker": reranker, "intelligence": intelligence,
         "repo_name": loader._parse_repo_name(repo_url)
     }
 
 # -----------------------------------------------------------------------------
-# SIDEBAR
+# SIDEBAR REFINEMENT
 # -----------------------------------------------------------------------------
 with st.sidebar:
     st.markdown(f"""
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-        <div style="width: 32px; height: 32px; background: #6366f1; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
-            {SVGS['zap'].replace('width="24"', 'width="18"').replace('height="24"', 'height="18"')}
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 2rem;">
+        <div style="background: var(--primary); padding: 6px; border-radius: 8px; color: white; display: flex;">
+            {SVGS['zap'].replace('width="24"', 'width="20"').replace('height="24"', 'height="20"')}
         </div>
-        <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: #fff;">CodeLens</h2>
+        <div style="font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em;">CodeLens</div>
     </div>
     """, unsafe_allow_html=True)
     
-    st.caption("REPOSITORY CONTROL")
-    repo_url = st.text_input("GitHub URL", placeholder="https://github.com/owner/repo", label_visibility="collapsed")
+    st.caption("CONNECT REPOSITORY")
+    repo_url = st.text_input("Repo URL", placeholder="https://github.com/...", label_visibility="collapsed")
     
-    col_est, col_idx = st.columns(2)
-    
-    # Estimate Logic
-    if repo_url and not st.session_state.get("indexed", False):
-        with col_est:
-            if st.button("Estimate", key="estimate_btn", use_container_width=True):
-                with st.spinner("..."):
-                    estimate = estimate_time(repo_url)
-                    if estimate["success"]:
-                        st.session_state.show_estimate = True
-                        st.session_state.estimate_data = estimate
-                    else:
-                        st.warning("Failed")
-    
-    # Display Estimate in Sidebar
-    if st.session_state.get("show_estimate", False) and "estimate_data" in st.session_state:
-        est = st.session_state.estimate_data
+    c_idx, c_est = st.columns([2, 1])
+    with c_idx:
+        index_btn = st.button("Index Library", type="primary", use_container_width=True)
+    with c_est:
+        est_btn = st.button("Calc", use_container_width=True)
+
+    if est_btn and repo_url:
+        with st.spinner("..."):
+            est = estimate_time(repo_url)
+            if est["success"]:
+                st.session_state.show_estimate = True
+                st.session_state.estimate_data = est
+
+    if st.session_state.get("show_estimate", False):
+        e = st.session_state.estimate_data
         st.markdown(f"""
-        <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; padding: 12px; margin: 10px 0;">
-            <div style="color: #a5b4fc; font-weight: bold; font-size: 1.1rem;">{est['est_time_str']}</div>
-            <div style="color: #94a3b8; font-size: 0.75rem;">{est['est_files']} files • {est['size_kb']} KB</div>
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-top: 10px;">
+            <div style="color: var(--primary); font-weight: 700;">{e['est_time_str']}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">{e['est_files']} files / {e['size_kb']} KB</div>
         </div>
         """, unsafe_allow_html=True)
 
-    # Indexing Logic
-    if repo_url:
-        with col_idx:
-            index_btn = st.button("Index", type="primary", use_container_width=True)
-            
-        if index_btn:
-            try:
-                clear_database()
-                progress_bar = st.progress(0, text="Initializing...")
-                status_box = st.empty()
-                
-                def update_progress(pct, text):
-                    progress_bar.progress(pct, text=text)
-                    status_box.caption(f"{text}")
-                
-                start_time = time.time()
-                result = index_repository(repo_url, update_progress)
-                elapsed = time.time() - start_time
-                
-                progress_bar.progress(100, text="Ready!")
-                status_box.success(f"Done in {elapsed:.1f}s")
-                time.sleep(1)
-                progress_bar.empty()
-                status_box.empty()
-                
-                # Update State
-                st.session_state.files = result["files"]
-                st.session_state.retriever = result["retriever"]
-                st.session_state.generator = result["generator"]
-                st.session_state.reranker = result["reranker"]
-                st.session_state.intelligence = result["intelligence"]
-                st.session_state.repo_name = result["repo_name"]
-                st.session_state.files_count = len(result["files"])
-                st.session_state.chunks_count = len(result["chunks"])
-                st.session_state.indexed = True
-                st.session_state.messages = []
-                st.session_state.show_estimate = False
-                st.rerun()
-                
-            except Exception as e:
-                st.error(f"Error: {str(e)}")
+    if index_btn and repo_url:
+        try:
+            clear_database()
+            bar = st.progress(0, text="Initializing...")
+            def up(p, t): bar.progress(p, text=t)
+            res = index_repository(repo_url, up)
+            st.session_state.update({
+                "files": res["files"], "retriever": res["retriever"], "generator": res["generator"],
+                "reranker": res["reranker"], "intelligence": res["intelligence"],
+                "repo_name": res["repo_name"], "files_count": len(res["files"]),
+                "chunks_count": len(res["chunks"]), "indexed": True, "messages": []
+            })
+            bar.empty()
+            st.rerun()
+        except Exception as e:
+            st.error(f"Failed: {str(e)}")
 
-    if st.session_state.get("indexed", False):
-        st.divider()
-        if st.button("Reset Session", type="secondary", use_container_width=True):
+    if st.session_state.indexed:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.caption("CONFIGURATION")
+        top_k = st.slider("Context Window", 1, 15, 5)
+        use_reranking = st.checkbox("Semantic Rerank", True)
+        if st.button("Clear Session", use_container_width=True):
             clear_database()
             st.rerun()
-            
-        st.divider()
-        st.caption("ADVANCED SETTINGS")
-        top_k = st.slider("Context Window", 1, 10, 5)
-        use_reranking = st.checkbox("Semantic Reranking", value=True)
-    else:
-        top_k = 5
-        use_reranking = True
 
 # -----------------------------------------------------------------------------
-# MAIN CONTENT
+# MAIN VIEW: LANDING
 # -----------------------------------------------------------------------------
-
-# --- VIEW: LANDING PAGE (NOT INDEXED) ---
-if not st.session_state.get("indexed", False):
-    
-    # Hero Section
-    st.markdown("""
+if not st.session_state.indexed:
+    st.markdown(f"""
     <div class="hero-container">
-        <h1 class="hero-title">CodeLens</h1>
-        <p class="hero-subtitle">Turn your repository into an intelligent knowledge base.<br>
-        Ask questions, trace dependencies, and generate documentation instantly.</p>
+        <h1 class="hero-title">Intelligent Code Navigation.</h1>
+        <p class="hero-subtitle">CodeLens parses ASTs and builds semantic vectors of your repository, allowing you to query logic across file boundaries instantly.</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Feature Grid
-    c1, c2, c3, c4 = st.columns(4)
-    
+
+    c1, c2, c3 = st.columns(3)
     features = [
-        {"icon": SVGS['chat'], "title": "Natural QA", "desc": "Context-aware chat interactions."},
-        {"icon": SVGS['search'], "title": "Deep Search", "desc": "Semantic & keyword retrieval."},
-        {"icon": SVGS['git'], "title": "Dependency", "desc": "Cross-file logic tracing."},
-        {"icon": SVGS['layers'], "title": "AST Parsing", "desc": "Structure-aware chunking."}
+        {"icon": SVGS['chat'], "title": "Contextual QA", "desc": "Chat with your source code."},
+        {"icon": SVGS['layers'], "title": "AST Chunking", "desc": "Aware of code structures."},
+        {"icon": SVGS['git'], "title": "Auto-Docs", "desc": "Generate technical guides."}
     ]
-    
-    for col, feat in zip([c1, c2, c3, c4], features):
+    for col, f in zip([c1, c2, c3], features):
         with col:
             st.markdown(f"""
             <div class="glass-card">
-                <div class="icon-box">{feat['icon']}</div>
-                <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: #f1f5f9;">{feat['title']}</h3>
-                <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">{feat['desc']}</p>
+                <div style="color: var(--primary); margin-bottom: 1rem;">{f['icon']}</div>
+                <div style="font-weight: 700; margin-bottom: 0.5rem;">{f['title']}</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">{f['desc']}</div>
             </div>
             """, unsafe_allow_html=True)
 
-    # Workflow Section
-    st.markdown('<h2 style="text-align: center; margin: 5rem 0 3rem;">Workflow</h2>', unsafe_allow_html=True)
-    s1, s2, s3 = st.columns(3)
-    
-    steps = [
-        {"num": "1", "title": "Connect", "desc": "Paste a GitHub URL to start cloning."},
-        {"num": "2", "title": "Analyze", "desc": "AI processes syntax trees and vectors."},
-        {"num": "3", "title": "Explore", "desc": "Interact with your codebase via chat."}
-    ]
-    
-    for col, step in zip([s1, s2, s3], steps):
-        with col:
-            st.markdown(f"""
-            <div class="step-card">
-                <div class="step-badge">{step['num']}</div>
-                <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #e2e8f0;">{step['title']}</h3>
-                <p style="font-size: 0.9rem; color: #64748b;">{step['desc']}</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-    # Suggested Repos (Fixed URLs)
-    st.markdown('<div style="margin-top: 5rem;"></div>', unsafe_allow_html=True)
-    st.caption("POPULAR REPOSITORIES")
+    st.markdown("<br><br><br>", unsafe_allow_html=True)
+    st.caption("QUICK START EXAMPLES")
     r1, r2, r3 = st.columns(3)
-    
-    repos = [
-        {"name": "tiangolo/typer", "type": "CLI Framework"},
-        {"name": "psf/requests", "type": "HTTP Library"},
-        {"name": "pallets/flask", "type": "Web Framework"}
-    ]
-    
-    for col, repo in zip([r1, r2, r3], repos):
-        with col:
-            st.code(f"https://github.com/{repo['name']}")
+    for col, url in zip([r1,r2,r3], ["tiangolo/typer", "psf/requests", "pallets/flask"]):
+        with col: st.code(f"https://github.com/{url}")
 
-# --- VIEW: DASHBOARD (INDEXED) ---
+# -----------------------------------------------------------------------------
+# MAIN VIEW: DASHBOARD
+# -----------------------------------------------------------------------------
 else:
-    # Header & HUD
+    # Header
     st.markdown(f"""
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
-        <div>
-            <h1 style="margin: 0; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{st.session_state.get("repo_name", "Repository")}</h1>
-            <p style="color: #64748b; margin: 0; font-size: 0.9rem;">Interactive Intelligence Dashboard</p>
-        </div>
+    <div style="margin-bottom: 2rem;">
+        <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;">Library Loaded</div>
+        <h1 style="margin: 0; font-size: 2.2rem; font-weight: 800;">{st.session_state.repo_name}</h1>
     </div>
-    
     <div class="hud-container">
         <div class="hud-item">
-            <div class="hud-value">{st.session_state.get("files_count", 0)}</div>
             <div class="hud-label">Source Files</div>
+            <div class="hud-value">{st.session_state.files_count}</div>
         </div>
         <div class="hud-item">
-            <div class="hud-value">{st.session_state.get("chunks_count", 0)}</div>
-            <div class="hud-label">Vector Chunks</div>
+            <div class="hud-label">Vector Nodes</div>
+            <div class="hud-value">{st.session_state.chunks_count}</div>
         </div>
-        <div class="hud-item" style="border-left-color: var(--accent);">
-            <div class="hud-value">Active</div>
-            <div class="hud-label">Engine Status</div>
+        <div class="hud-item">
+            <div class="hud-label">Engine</div>
+            <div class="hud-value" style="color: #10b981; font-size: 1rem;">● Operational</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Main Tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Chat & Query", "Logic Explainer", "Pattern Match", "Auto Docs", "Deep Analysis"])
-    
-    # --- TAB 1: CHAT ---
-    with tab1:
-        # Fixed height container for chat history
-        chat_container = st.container()
+    tab_chat, tab_explain, tab_pattern, tab_docs, tab_anal = st.tabs([
+        "Chat Interface", "Logic Trace", "Pattern Match", "Doc Gen", "Base Analysis"
+    ])
+
+    # --- CHAT TAB ---
+    with tab_chat:
+        st.markdown('<div class="chat-status-bar"><span>●</span> Knowledge base synced. Indexing active.</div>', unsafe_allow_html=True)
         
-        with chat_container:
-            st.markdown('<div class="chat-status-bar">🟢 Connected to Knowledge Base</div>', unsafe_allow_html=True)
-            st.markdown('<div class="chat-history-container">', unsafe_allow_html=True)
-            
-            # Show empty state if no messages
-            if not st.session_state.get("messages", []):
-                st.markdown("""
-                <div style="text-align: center; color: #64748b; padding: 2rem;">
-                    <p>👋 Ask anything about your codebase structure or logic.</p>
-                </div>
-                """, unsafe_allow_html=True)
+        # Display existing messages
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+                if msg.get("sources"):
+                    with st.expander("References"):
+                        for s in msg["sources"]:
+                            st.markdown(f'<div class="source-item">{SVGS["code"]} {s}</div>', unsafe_allow_html=True)
 
-            for msg in st.session_state.get("messages", []):
-                with st.chat_message(msg["role"]):
-                    st.markdown(msg["content"])
-                    if msg.get("sources"):
-                        with st.expander("References"):
-                            for src in msg["sources"]:
-                                st.markdown(f'<div class="source-item">{SVGS["code"]} {src}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        # Input (Automatically fixed at bottom by Streamlit)
-        if prompt := st.chat_input("Ask about logic, patterns, or architecture..."):
+        if prompt := st.chat_input("Ask about logic flow or architecture..."):
             st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun() # Rerun to show user message immediately inside container
+            st.rerun()
 
-        # Handle Response generation after rerun
+        # Handle Generation (Post-Rerun)
         if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-             with st.spinner("Processing..."):
+            with st.spinner("Analyzing context..."):
                 try:
-                    start = time.time()
-                    retriever = st.session_state.get("retriever")
-                    generator = st.session_state.get("generator")
-                    reranker = st.session_state.get("reranker")
+                    query = st.session_state.messages[-1]["content"]
+                    res = st.session_state.retriever.search(query, top_k=top_k*2)
+                    if res and use_reranking:
+                        res = st.session_state.reranker.rerank(query, res, top_k=top_k)
+                    elif res: res = res[:top_k]
                     
-                    last_msg = st.session_state.messages[-1]["content"]
-                    results = retriever.search(last_msg, top_k=top_k*2)
+                    answer = st.session_state.generator.generate(query, res) if res else "Context not found."
+                    sources = [f"{r['metadata'].get('file_path')} : {r['metadata'].get('name')}" for r in res] if res else []
                     
-                    if results and use_reranking:
-                        results = reranker.rerank(last_msg, results, top_k=top_k)
-                    elif results:
-                        results = results[:top_k]
-                    
-                    if results:
-                        answer = generator.generate(last_msg, results)
-                    else:
-                        answer = "No relevant code segments found in the index."
-                    
-                    elapsed = time.time() - start
+                    st.session_state.messages.append({
+                        "role": "assistant", "content": answer, "sources": sources
+                    })
+                    st.rerun()
                 except Exception as e:
-                    answer = f"Error: {str(e)}"
-                    results = []
-                    elapsed = 0
-            
-                sources = []
-                if results:
-                    for i, r in enumerate(results[:5], 1):
-                        meta = r.get("metadata", {})
-                        src_text = f"{meta.get('file_path', '?')} : {meta.get('name', '?')}"
-                        sources.append(src_text)
-                
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": answer,
-                    "sources": sources
-                })
-                st.rerun()
+                    st.error(f"Engine Error: {e}")
 
-    # --- TAB 2: EXPLAIN ---
-    with tab2:
-        col_ex1, col_ex2 = st.columns([1, 1])
-        with col_ex1:
-            func_name = st.text_input("Target Function/Class", placeholder="e.g. process_request")
-        with col_ex2:
-            file_path = st.text_input("File Scope (Optional)", placeholder="src/main.py")
-            
-        if st.button("Analyze Logic", type="primary", use_container_width=True):
-            if func_name:
-                with st.spinner("Tracing AST..."):
-                    try:
-                        intelligence = st.session_state.get("intelligence")
-                        result = intelligence.explain_function(func_name, file_path if file_path else None)
-                        
-                        if "error" in result:
-                            st.warning(result["error"])
-                        else:
-                            st.markdown(f"### {result['function_name']}")
-                            st.caption(f"Location: {result['file_path']} : Lines {result.get('start_line', '?')}-{result.get('end_line', '?')}")
-                            
-                            st.markdown("""<div class="glass-card">""", unsafe_allow_html=True)
-                            st.markdown(result["explanation"])
-                            st.markdown("</div>", unsafe_allow_html=True)
-                            
-                            with st.expander("Source Code"):
-                                st.code(result["code"], language="python")
-                    except Exception as e:
-                        st.error(f"Analysis failed: {str(e)}")
-
-    # --- TAB 3: SIMILAR ---
-    with tab3:
-        code_snippet = st.text_area("Reference Logic", placeholder="Paste code snippet to find similar patterns...", height=200)
+    # --- LOGIC EXPLAINER ---
+    with tab_explain:
+        col_l, col_r = st.columns(2)
+        with col_l: target = st.text_input("Function/Class Name", placeholder="e.g. build_tree")
+        with col_r: scope = st.text_input("Path (Optional)", placeholder="src/core.py")
         
-        if st.button("Identify Patterns", type="primary"):
-            if code_snippet:
-                with st.spinner("Comparing vectors..."):
-                    try:
-                        intelligence = st.session_state.get("intelligence")
-                        results = intelligence.find_similar_code(code_snippet, top_k=5)
-                        
-                        if results:
-                            for i, r in enumerate(results, 1):
-                                st.markdown(f"""
-                                <div class="glass-card" style="margin-bottom: 1rem;">
-                                    <div style="display: flex; justify-content: space-between;">
-                                        <h4 style="margin:0; font-size: 1rem;">{r['name']}</h4>
-                                        <span style="color: var(--accent); font-weight: bold;">{r['similarity_score']:.2f} Match</span>
-                                    </div>
-                                    <p style="color: #94a3b8; font-size: 0.8rem; margin-top: 5px;">{r['file']} | Line {r['line']}</p>
-                                </div>
-                                """, unsafe_allow_html=True)
-                                with st.expander(f"Code Preview"):
-                                    st.code(r["code"], language="python")
-                        else:
-                            st.info("No statistically similar patterns found.")
-                    except Exception as e:
-                        st.error(str(e))
+        if st.button("Generate Explanation", type="primary", use_container_width=True):
+            with st.spinner("Tracing..."):
+                try:
+                    res = st.session_state.intelligence.explain_function(target, scope if scope else None)
+                    if "error" in res: st.warning(res["error"])
+                    else:
+                        st.markdown(f"### {res['function_name']}")
+                        st.markdown(f"<p style='color:var(--text-muted); font-size:0.8rem;'>{res['file_path']} : L{res.get('start_line')}</p>", unsafe_allow_html=True)
+                        st.markdown(f'<div class="glass-card">{res["explanation"]}</div>', unsafe_allow_html=True)
+                        with st.expander("Source"): st.code(res["code"], "python")
+                except Exception as e: st.error(e)
 
-    # --- TAB 4: DOCS ---
-    with tab4:
-        files = st.session_state.get("files", [])
-        file_paths = [f.path for f in files] if files else []
+    # --- PATTERN MATCH ---
+    with tab_pattern:
+        snippet = st.text_area("Reference Logic Snippet", placeholder="Paste code to find clones...", height=150)
+        if st.button("Identify Similar Logic", type="primary"):
+            with st.spinner("Vector scanning..."):
+                res = st.session_state.intelligence.find_similar_code(snippet, 5)
+                if not res: st.info("No clones found.")
+                for r in res:
+                    st.markdown(f"""
+                    <div class="glass-card" style="margin-bottom:0.8rem;">
+                        <div style="display:flex; justify-content:space-between;">
+                            <b>{r['name']}</b>
+                            <span style="color:var(--primary);">{r['similarity_score']:.2%} Match</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">{r['file']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    with st.expander("Preview"): st.code(r["code"], "python")
+
+    # --- DOCS ---
+    with tab_docs:
+        f_list = [f.path for f in st.session_state.files] if st.session_state.files else []
+        sel = st.selectbox("Select Target File", f_list)
+        if st.button("Build Documentation"):
+            with st.spinner("Generating markdown..."):
+                doc = st.session_state.intelligence.generate_documentation(sel)
+                st.markdown(f'<div class="glass-card">{doc}</div>', unsafe_allow_html=True)
+
+    # --- ANALYZE ---
+    with tab_anal:
+        if st.button("Run Global Scan"):
+            with st.spinner("Mapping AST..."):
+                stats = st.session_state.intelligence.analyze_codebase()
+                st.session_state.codebase_stats = stats
         
-        selected_file = st.selectbox("Target File", file_paths if file_paths else ["Index empty"])
-        
-        if st.button("Generate Docs", key="docs_btn"):
-            if selected_file and selected_file != "Index empty":
-                with st.spinner("Writing documentation..."):
-                    try:
-                        intelligence = st.session_state.get("intelligence")
-                        docs = intelligence.generate_documentation(selected_file)
-                        st.markdown(docs)
-                    except Exception as e:
-                        st.error(str(e))
-
-    # --- TAB 5: ANALYZE ---
-    with tab5:
-        c1, c2 = st.columns(2)
-        with c1:
-            if st.button("Run Global Analysis", use_container_width=True):
-                with st.spinner("Scanning structure..."):
-                    try:
-                        intelligence = st.session_state.get("intelligence")
-                        stats = intelligence.analyze_codebase()
-                        st.session_state.codebase_stats = stats
-                    except Exception as e:
-                        st.error(str(e))
-        with c2:
-            if st.button("Trace Symbol Usage", use_container_width=True):
-                st.session_state.show_usage_input = True
-
         if "codebase_stats" in st.session_state:
-            stats = st.session_state.codebase_stats
+            s = st.session_state.codebase_stats
+            st.markdown("#### Logic Tree")
+            tree = '<div class="tree-view"><div class="tree-root">📦 Project Root</div>'
+            for c in s.get("classes", [])[:10]:
+                tree += f'<div class="tree-node"><span class="tree-leaf">Class</span> {c["name"]}</div>'
+            tree += '</div>'
+            st.markdown(tree, unsafe_allow_html=True)
             
-            # CSS Tree Visualization instead of Graphviz
-            st.subheader("Structure Map")
-            
-            tree_html = '<div class="tree-view">'
-            tree_html += '<div class="tree-root">📦 Root</div>'
-            
-            # Simple visualization of top files/classes
-            for cls in stats.get("classes", [])[:8]:
-                tree_html += f'<div class="tree-node"><span class="tree-leaf">Class:</span> {cls["name"]} <span style="opacity:0.5; font-size:0.8em">({cls["file"]})</span></div>'
-            for func in stats.get("functions", [])[:5]:
-                tree_html += f'<div class="tree-node"><span class="tree-leaf">Func:</span> {func["name"]} <span style="opacity:0.5; font-size:0.8em">({func["file"]})</span></div>'
-            
-            tree_html += '</div>'
-            
-            st.markdown(f"""
-            <div class="glass-card">
-                {tree_html}
-            </div>
-            """, unsafe_allow_html=True)
-
-            st.markdown("---")
-            d1, d2 = st.columns(2)
-            with d1:
-                st.markdown("##### Detected Classes")
-                for cls in stats.get("classes", [])[:10]:
-                    st.markdown(f'<div class="source-item">{SVGS["box"]} {cls["name"]} <span style="color: #64748b; margin-left: auto;">{cls["file"]}</span></div>', unsafe_allow_html=True)
-            with d2:
-                st.markdown("##### Detected Functions")
-                for func in stats.get("functions", [])[:10]:
-                    st.markdown(f'<div class="source-item">{SVGS["code"]} {func["name"]} <span style="color: #64748b; margin-left: auto;">{func["file"]}</span></div>', unsafe_allow_html=True)
-
-        if st.session_state.get("show_usage_input", False):
-            st.divider()
-            usage_name = st.text_input("Enter symbol name", key="usage_input", placeholder="e.g. BaseLoader")
-            if st.button("Trace"):
-                with st.spinner("Mapping references..."):
-                    try:
-                        intelligence = st.session_state.get("intelligence")
-                        usages = intelligence.find_usages(usage_name)
-                        st.success(f"Found {usages['total_usages']} references")
-                        
-                        udata = usages.get("usages", {})
-                        if udata.get("definition"):
-                            d = udata["definition"]
-                            st.markdown(f"**Definition:** `{d['file']}:{d['line']}`")
-                        
-                        if udata.get("calls"):
-                            st.markdown("**Call Sites:**")
-                            for call in udata["calls"][:10]:
-                                st.markdown(f"- `{call['file']}` at line {call['line']}")
-                    except Exception as e:
-                        st.error(str(e))
+            c1, c2 = st.columns(2)
+            with c1:
+                st.caption("CLASSES")
+                for c in s.get("classes", [])[:15]:
+                    st.markdown(f'<div class="source-item">{c["name"]}</div>', unsafe_allow_html=True)
+            with c2:
+                st.caption("FUNCTIONS")
+                for f in s.get("functions", [])[:15]:
+                    st.markdown(f'<div class="source-item">{f["name"]}</div>', unsafe_allow_html=True)
