@@ -1,6 +1,8 @@
-﻿from typing import Dict, List, Any, Optional, Set
+"""Hybrid retriever combining dense and sparse search."""
+
+from typing import Dict, List, Any, Optional, Set
 from ..chunking import CodeChunk
-from ..utils import logger, config
+from ..utils import logger
 from .vector_store import VectorStore
 from .bm25_retriever import BM25Retriever
 
@@ -27,10 +29,17 @@ class HybridRetriever:
         """Index chunks and optionally build dependency graph."""
         logger.info(f"Indexing {len(chunks)} chunks")
         
+        # Reset everything for fresh index
         self._chunks = chunks
+        self._file_to_chunks = {}
+        
+        # Create fresh BM25 retriever
+        self.bm25_retriever = BM25Retriever()
+        
+        # Create fresh vector store (this forces complete reset)
+        self.vector_store = VectorStore()
         
         # Build file to chunks mapping
-        self._file_to_chunks = {}
         for chunk in chunks:
             file_path = chunk.file_path
             if file_path not in self._file_to_chunks:
