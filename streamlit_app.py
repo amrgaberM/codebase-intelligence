@@ -22,7 +22,7 @@ st.set_page_config(
 # -----------------------------------------------------------------------------
 SVGS = {
     "zap": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>""",
-    "search": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>""",
+    "search": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" x1="21" x2="16.65" y2="16.65"></line></svg>""",
     "chat": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>""",
     "git": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>""",
     "code": """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>""",
@@ -124,7 +124,7 @@ st.markdown("""
     .hud-value { font-size: 1.5rem; font-weight: 700; color: #fff; }
     .hud-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.1em; }
 
-    /* Fix Chat Viewport & Formatting */
+    /* Chat Viewport & Formatting */
     .chat-status-bar {
         background: rgba(16, 185, 129, 0.1);
         color: #10b981;
@@ -213,11 +213,15 @@ def clear_database():
         del st.session_state[key]
 
 def index_repository(repo_url, progress_callback=None):
-    from src.ingestion import GitHubLoader
-    from src.chunking import ASTChunker
-    from src.retrieval import HybridRetriever, LightweightReranker
-    from src.generation import CodeGenerator, CodeIntelligence
-    
+    try:
+        from src.ingestion import GitHubLoader
+        from src.chunking import ASTChunker
+        from src.retrieval import HybridRetriever, LightweightReranker
+        from src.generation import CodeGenerator, CodeIntelligence
+    except ImportError:
+        st.error("Engine components not found. Ensure 'src' directory is present.")
+        return None
+
     if progress_callback: progress_callback(10, "Cloning repository...")
     loader = GitHubLoader()
     files = loader.clone_repo(repo_url)
@@ -264,14 +268,15 @@ with st.sidebar:
             bar = st.progress(0, text="Initializing...")
             def up(p, t): bar.progress(p, text=t)
             res = index_repository(repo_url, up)
-            st.session_state.update({
-                "files": res["files"], "retriever": res["retriever"], "generator": res["generator"],
-                "reranker": res["reranker"], "intelligence": res["intelligence"],
-                "repo_name": res["repo_name"], "files_count": len(res["files"]),
-                "chunks_count": len(res["chunks"]), "indexed": True, "messages": []
-            })
-            bar.empty()
-            st.rerun()
+            if res:
+                st.session_state.update({
+                    "files": res["files"], "retriever": res["retriever"], "generator": res["generator"],
+                    "reranker": res["reranker"], "intelligence": res["intelligence"],
+                    "repo_name": res["repo_name"], "files_count": len(res["files"]),
+                    "chunks_count": len(res["chunks"]), "indexed": True, "messages": []
+                })
+                bar.empty()
+                st.rerun()
         except Exception as e:
             st.error(f"Failed: {str(e)}")
 
@@ -351,24 +356,25 @@ else:
     with tab_chat:
         st.markdown('<div class="chat-status-bar"><span>●</span> Knowledge base connected. Ready for queries.</div>', unsafe_allow_html=True)
         
-        # This container holds the message history
+        # History container
         message_container = st.container()
         
-        # Always-at-bottom input
+        # Display history
+        with message_container:
+            if not st.session_state.messages:
+                st.markdown('<p style="color:var(--text-muted); text-align:center; padding: 2rem;">Ask anything about the repository structure or implementation.</p>', unsafe_allow_html=True)
+            for msg in st.session_state.messages:
+                with st.chat_message(msg["role"]):
+                    st.markdown(msg["content"])
+                    if msg.get("sources"):
+                        with st.expander("References"):
+                            for s in msg["sources"]:
+                                st.markdown(f'<div class="source-item">{SVGS["code"]} {s}</div>', unsafe_allow_html=True)
+
+        # Input logic
         if prompt := st.chat_input("Ask about logic flow, architecture, or specific functions..."):
             st.session_state.messages.append({"role": "user", "content": prompt})
             
-            # Immediately show user message
-            with message_container:
-                for msg in st.session_state.messages:
-                    with st.chat_message(msg["role"]):
-                        st.markdown(msg["content"])
-                        if msg.get("sources"):
-                            with st.expander("References"):
-                                for s in msg["sources"]:
-                                    st.markdown(f'<div class="source-item">{SVGS["code"]} {s}</div>', unsafe_allow_html=True)
-            
-            # Generate response
             with st.spinner("Analyzing code context..."):
                 try:
                     res = st.session_state.retriever.search(prompt, top_k=top_k*2)
@@ -385,18 +391,6 @@ else:
                     st.rerun()
                 except Exception as e:
                     st.error(f"Analysis Error: {e}")
-        else:
-            # Display history if no new input
-            with message_container:
-                if not st.session_state.messages:
-                    st.markdown('<p style="color:var(--text-muted); text-align:center; padding: 2rem;">Ask anything about the repository structure or implementation.</p>', unsafe_allow_html=True)
-                for msg in st.session_state.messages:
-                    with st.chat_message(msg["role"]):
-                        st.markdown(msg["content"])
-                        if msg.get("sources"):
-                            with st.expander("References"):
-                                for s in msg["sources"]:
-                                    st.markdown(f'<div class="source-item">{SVGS["code"]} {s}</div>', unsafe_allow_html=True)
 
     # --- LOGIC EXPLAINER ---
     with tab_explain:
