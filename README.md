@@ -6,7 +6,7 @@
 
 **AI-powered codebase intelligence. Ask questions about any GitHub repo in plain English.**
 
-[Live Demo](https://your-app.streamlit.app) • [Documentation](#usage) • [API Reference](#api-reference)
+
 
 ---
 
