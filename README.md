@@ -23,7 +23,7 @@ Point CodeLens at any GitHub repository and instantly:
 
 ```bash
 # 1. Clone & install
-git clone https://github.com/amr-khalil/codelens.git
+git clone [repo link]
 cd codelens && pip install -r requirements.txt
 
 # 2. Add your Groq API key
