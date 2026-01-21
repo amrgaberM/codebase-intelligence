@@ -7,6 +7,11 @@ from .vector_store import VectorStore
 from .bm25_retriever import BM25Retriever
 
 
+# File priority patterns
+HIGH_PRIORITY_FILES = ["main.py", "__init__.py", "app.py", "core.py", "cli.py", "api.py"]
+LOW_PRIORITY_PATTERNS = ["docs/management", "docs/release", ".pre-commit", "conftest", "setup.py"]
+
+
 class HybridRetriever:
     """Advanced hybrid retriever with multi-hop and dependency awareness."""
     
@@ -70,6 +75,57 @@ class HybridRetriever:
             self._dependency_graph = None
             self._graph_builder = None
     
+    def _is_overview_question(self, query: str) -> bool:
+        """Detect if query is asking for project overview."""
+        overview_keywords = [
+            "what is", "what does", "core idea", "purpose", "overview",
+            "main feature", "about this", "explain this project",
+            "how does this work", "what's this repo", "what is this"
+        ]
+        query_lower = query.lower()
+        return any(kw in query_lower for kw in overview_keywords)
+    
+    def _is_high_priority_file(self, file_path: str) -> bool:
+        """Check if file is high priority."""
+        file_name = file_path.split("/")[-1]
+        # Check exact matches
+        if file_name in HIGH_PRIORITY_FILES:
+            return True
+        # Check if it's a main module __init__.py (not in tests/docs)
+        if file_name == "__init__.py" and "test" not in file_path.lower() and "docs" not in file_path.lower():
+            return True
+        return False
+    
+    def _is_low_priority_file(self, file_path: str) -> bool:
+        """Check if file should be deprioritized."""
+        file_lower = file_path.lower()
+        return any(lp in file_lower for lp in LOW_PRIORITY_PATTERNS)
+    
+    def _rerank_for_overview(self, results: List[Dict]) -> List[Dict]:
+        """Rerank results for overview questions - prioritize core code."""
+        for result in results:
+            file_path = result.get("metadata", {}).get("file_path", "")
+            chunk_type = result.get("metadata", {}).get("chunk_type", "")
+            
+            # Boost high priority files
+            if self._is_high_priority_file(file_path):
+                result["score"] = result.get("score", 0) + 0.3
+            
+            # Boost classes and main functions
+            if chunk_type in ["class", "module"]:
+                result["score"] = result.get("score", 0) + 0.2
+            
+            # Penalize low priority files
+            if self._is_low_priority_file(file_path):
+                result["score"] = result.get("score", 0) - 0.4
+            
+            # Penalize docs that aren't README
+            if "docs/" in file_path and "readme" not in file_path.lower():
+                result["score"] = result.get("score", 0) - 0.3
+        
+        # Re-sort by adjusted score
+        return sorted(results, key=lambda x: x.get("score", 0), reverse=True)
+    
     def search(
         self,
         query: str,
@@ -95,6 +151,10 @@ class HybridRetriever:
         
         # Combine with RRF
         combined = self._reciprocal_rank_fusion(dense_results, bm25_results)
+        
+        # Smart reranking for overview questions
+        if self._is_overview_question(query):
+            combined = self._rerank_for_overview(combined)
         
         # Expand with dependencies
         if use_dependencies and self._graph_builder is not None and combined:
