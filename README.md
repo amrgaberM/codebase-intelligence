@@ -1,236 +1,156 @@
-﻿# CodeLens
+# CodeLens 🔍
 
-**AI-Powered Codebase Intelligence System**
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://your-app.streamlit.app)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-CodeLens is an advanced Retrieval-Augmented Generation (RAG) system designed specifically for understanding codebases. Point it at any GitHub repository and instantly gain the ability to ask natural language questions about the code, understand complex architectures, and discover patterns across the entire codebase.
+**AI-powered codebase intelligence. Ask questions about any GitHub repo in plain English.**
+
+[Live Demo](https://your-app.streamlit.app) • [Documentation](#usage) • [API Reference](#api-reference)
 
 ---
 
-## Performance Highlights
+![CodeLens Demo](demo.gif)
+
+---
+
+## What is CodeLens?
+
+Point CodeLens at any GitHub repository and instantly:
+- 💬 **Ask questions** in natural language
+- 🔍 **Search code** semantically (not just keywords)
+- 📖 **Explain functions** with full context
+- 🔗 **Understand dependencies** between files
+
+---
+
+## Quick Demo
+
+```bash
+# 1. Clone & install
+git clone https://github.com/amr-khalil/codelens.git
+cd codelens && pip install -r requirements.txt
+
+# 2. Add your Groq API key
+echo "GROQ_API_KEY=your_key" > .env
+
+# 3. Run
+streamlit run streamlit_app.py
+```
+
+---
+
+## Performance
 
 | Metric | Value |
 |--------|-------|
-| Indexing Speed | 600+ files in under 60 seconds |
-| Retrieval Latency | 38ms average |
-| Generation Time | 1.9 seconds average |
-| Chunk Processing | 2000+ chunks supported |
-| Languages Supported | 15+ programming languages |
-| Embedding Dimensions | 384 (MiniLM-L6-v2) |
+| Retrieval Latency | **38ms** |
+| Answer Generation | **1.9s** |
+| Retrieval Accuracy | **85%** |
+| Chunks Supported | **2,000+** |
+
+> Tested on [tiangolo/typer](https://github.com/tiangolo/typer) (605 files, 2,117 chunks)
 
 ---
 
-## Table of Contents
+## How It Works
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Usage](#usage)
-- [API Reference](#api-reference)
-- [Configuration](#configuration)
-- [Technical Details](#technical-details)
-- [Benchmarks](#benchmarks)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Overview
-
-Traditional code search tools rely on keyword matching, missing the semantic relationships that make code understandable. CodeLens combines multiple retrieval strategies with large language models to provide intelligent, context-aware answers about any codebase.
-
-### What Makes CodeLens Different
-
-| Approach | Traditional Search | CodeLens |
-|----------|-------------------|----------|
-| Search Method | Keyword matching | Hybrid semantic + keyword |
-| Code Understanding | Text-based | AST-aware structure |
-| Context | Single file | Multi-file with dependencies |
-| Results | File list | Natural language explanations |
-| Learning Curve | Know exact terms | Ask in plain English |
-
-### Results at a Glance
-
-- 70% dense retrieval + 30% sparse retrieval weights optimized through testing
-- Reciprocal Rank Fusion combining results from 2 retrieval systems
-- AST-based chunking preserving 100% of function/class boundaries
-- Dependency expansion adding 3-5 related files per query automatically
-
----
-
-## Key Features
-
-### Intelligent Code Understanding
-
-- **AST-Based Chunking**: Parses code using Abstract Syntax Trees, preserving function and class boundaries instead of arbitrary text splits
-- **Multi-Language Support**: Python, JavaScript, TypeScript, Java, Go, Rust, C/C++, Ruby, PHP, Swift, Kotlin, Scala, and more (15+ languages)
-- **Dependency Analysis**: Tracks imports and builds a dependency graph to understand code relationships
-
-### Advanced Retrieval
-
-- **Hybrid Search**: Combines dense vector search (semantic understanding) with BM25 (exact keyword matching)
-- **Reciprocal Rank Fusion**: Merges results from multiple retrieval strategies for optimal relevance
-- **Dependency Expansion**: Automatically includes related files based on import relationships
-- **Reranking**: Refines results using cross-encoder models or lightweight heuristics
-
-### Smart Features
-
-- **Natural Language Q&A**: Ask questions about the codebase in plain English
-- **Function Explanation**: Get detailed explanations of any function including purpose, parameters, and logic
-- **Similar Code Search**: Find patterns similar to a provided code snippet
-- **Auto-Documentation**: Generate documentation for files and modules
-- **Usage Analysis**: Find where functions and classes are defined, imported, and called
-
-### Production Ready
-
-- **Web Interface**: Clean Streamlit-based UI with real-time progress
-- **REST API**: FastAPI backend for integration with other tools
-- **CLI Tool**: Command-line interface for scripting and automation
-- **Time Estimation**: Predicts indexing time based on repository size using GitHub API
-
----
-
-## Architecture
 ```
-                                 CodeLens Architecture
-                                 
-    +------------------------------------------------------------------+
-    |                        User Interfaces                            |
-    |  +----------------+  +----------------+  +--------------------+   |
-    |  |   Streamlit    |  |   FastAPI      |  |       CLI          |   |
-    |  |   (Web UI)     |  |   (REST API)   |  |    (Terminal)      |   |
-    +--+-------+--------+--+-------+--------+--+---------+----------+---+
-               |                   |                     |
-               +-------------------+---------------------+
-                                   |
-    +------------------------------v-------------------------------+
-    |                      Ingestion Layer                          |
-    |  +------------------+  +------------------+  +--------------+ |
-    |  |  GitHub Loader   |  |   AST Parser     |  | File Filter  | |
-    |  |  - Clone repos   |  |  - Python AST    |  | - Extensions | |
-    |  |  - Read files    |  |  - Extract code  |  | - Patterns   | |
-    +--+------------------+--+------------------+--+--------------+-+
-                                   |
-    +------------------------------v-------------------------------+
-    |                      Chunking Layer                           |
-    |  +------------------+  +------------------+  +--------------+ |
-    |  |   AST Chunker    |  | Semantic Chunker |  |  CodeChunk   | |
-    |  |  - Functions     |  |  - Text fallback |  |  - Metadata  | |
-    |  |  - Classes       |  |  - Paragraphs    |  |  - Context   | |
-    +--+------------------+--+------------------+--+--------------+-+
-                                   |
-    +------------------------------v-------------------------------+
-    |                      Embedding Layer                          |
-    |  +----------------------------------------------------------+ |
-    |  |                    Code Embedder                          | |
-    |  |  - HuggingFace Inference API (primary)                   | |
-    |  |  - Local SentenceTransformers (fallback)                 | |
-    |  |  - Model: all-MiniLM-L6-v2 (384 dimensions)             | |
-    +--+----------------------------------------------------------+-+
-                                   |
-    +------------------------------v-------------------------------+
-    |                      Retrieval Layer                          |
-    |  +-------------+  +-------------+  +------------------------+ |
-    |  | VectorStore |  |    BM25     |  |   Hybrid Retriever     | |
-    |  | (ChromaDB)  |  |  (Sparse)   |  |  - RRF Fusion          | |
-    |  | - Dense     |  |  - Keywords |  |  - Dependency Expand   | |
-    |  +-------------+  +-------------+  +------------------------+ |
-    |  +-------------+  +-------------+  +------------------------+ |
-    |  |  Reranker   |  |   Query     |  |  Dependency Graph      | |
-    |  | - Scoring   |  |  Expander   |  |  - Import tracking     | |
-    +--+-------------+--+-------------+--+------------------------+-+
-                                   |
-    +------------------------------v-------------------------------+
-    |                      Generation Layer                         |
-    |  +-------------+  +-------------+  +------------------------+ |
-    |  |  Generator  |  |   Prompts   |  |  Code Intelligence     | |
-    |  | - Groq API  |  |  - System   |  |  - Explain function    | |
-    |  | - Llama 3.3 |  |  - Context  |  |  - Find similar        | |
-    |  | - Streaming |  |  - Format   |  |  - Generate docs       | |
-    +--+-------------+--+-------------+--+------------------------+-+
+GitHub Repo → AST Parser → Chunker → Embeddings → Vector DB
+                                                      ↓
+    User Question → Hybrid Search (Dense + BM25) → Reranker → LLM → Answer
 ```
+
+**Key techniques:**
+- **Hybrid retrieval**: 70% semantic + 30% keyword search
+- **AST-based chunking**: Preserves function/class boundaries
+- **Dependency expansion**: Adds related files automatically
+- **Reciprocal Rank Fusion**: Combines multiple search strategies
+
+---
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| LLM | Groq (Llama 3.3 70B) |
+| Embeddings | MiniLM-L6-v2 (384 dim) |
+| Vector Store | ChromaDB |
+| Sparse Search | BM25 |
+| Backend | FastAPI |
+| Frontend | Streamlit |
+
+---
+
+## Features
+
+### 💬 Natural Language Q&A
+Ask anything about the codebase:
+- *"How does authentication work?"*
+- *"What does the process_data function do?"*
+- *"Where is error handling implemented?"*
+
+### 🔍 Hybrid Search
+Combines semantic understanding with keyword matching for best results.
+
+### 📊 Code Intelligence
+- **Explain Function**: Detailed breakdown of any function
+- **Find Similar**: Discover similar code patterns
+- **Usage Analysis**: Track where symbols are used
+- **Auto-Documentation**: Generate docs for any file
 
 ---
 
 ## Installation
 
 ### Prerequisites
-
-- Python 3.10 or higher
-- Git
+- Python 3.10+
+- [Groq API Key](https://console.groq.com) (free)
 
 ### Setup
-
-1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/codelens.git
+# Clone
+git clone https://github.com/amr-khalil/codelens.git
 cd codelens
-```
 
-2. Create a virtual environment:
-```bash
+# Install
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
-```
-
-3. Install dependencies:
-```bash
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+
+# Configure
+echo "GROQ_API_KEY=your_key" > .env
+
+# Run
+streamlit run streamlit_app.py
 ```
-
-4. Configure environment variables:
-```bash
-# Create .env file
-echo "GROQ_API_KEY=your_groq_api_key" > .env
-echo "HF_TOKEN=your_huggingface_token" >> .env
-```
-
-### Getting API Keys
-
-**Groq API Key** (Required for LLM):
-1. Visit https://console.groq.com
-2. Create an account and generate an API key
-
-**HuggingFace Token** (Optional, for faster embeddings):
-1. Visit https://huggingface.co/settings/tokens
-2. Create a read-access token
 
 ---
 
-## Quick Start
+## Usage
 
-### Web Interface
+### Web UI
 ```bash
 streamlit run streamlit_app.py
 ```
 
-Open http://localhost:8501 in your browser.
-
 ### CLI
 ```bash
-# Index a repository
 python cli.py ingest https://github.com/tiangolo/typer
-
-# Ask a question
 python cli.py query "How do I create a CLI command?"
-
-# Interactive chat mode
-python cli.py chat
+python cli.py chat  # Interactive mode
 ```
 
 ### API
 ```bash
-# Start the API server
 uvicorn src.api.main:app --reload
 
-# Index a repository
+# Index
 curl -X POST http://localhost:8000/api/v1/ingest \
   -H "Content-Type: application/json" \
   -d '{"repo_url": "https://github.com/tiangolo/typer"}'
 
-# Query the codebase
+# Query
 curl -X POST http://localhost:8000/api/v1/query \
   -H "Content-Type: application/json" \
   -d '{"query": "How does argument parsing work?"}'
@@ -238,405 +158,58 @@ curl -X POST http://localhost:8000/api/v1/query \
 
 ---
 
-## Usage
+## Architecture
 
-### Indexing a Repository
-
-1. Enter a GitHub repository URL in the sidebar
-2. Click "Estimate Time" to see how long indexing will take
-3. Click "Index" to begin processing
-4. Wait for completion (progress shown in real-time)
-
-### Asking Questions
-
-Once indexed, use the Chat tab to ask questions:
-
-- "How does authentication work in this codebase?"
-- "What does the process_data function do?"
-- "Where is error handling implemented?"
-- "Show me how the API routes are structured"
-
-### Using Features
-
-**Explain Function Tab**:
-Enter a function or class name to get a detailed explanation including:
-- Purpose and behavior
-- Parameters and return values
-- Step-by-step logic
-- Dependencies and usage examples
-
-**Find Similar Tab**:
-Paste a code snippet to find similar patterns in the codebase. Useful for:
-- Finding code duplication
-- Learning coding patterns
-- Discovering related implementations
-
-**Documentation Tab**:
-Select a file to auto-generate documentation including:
-- Module overview
-- Class and function descriptions
-- Parameter documentation
-- Usage examples
-
-**Analyze Tab**:
-Get high-level codebase statistics:
-- Total files and code chunks
-- Classes and functions list
-- Find usages of any symbol
-
----
-
-## API Reference
-
-### Endpoints
-
-#### POST /api/v1/ingest
-Index a GitHub repository.
-
-**Request:**
-```json
-{
-  "repo_url": "https://github.com/owner/repo",
-  "branch": "main",
-  "force": false
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "repo_name": "owner_repo",
-  "files_processed": 45,
-  "chunks_created": 312,
-  "message": "Successfully indexed 312 chunks from 45 files"
-}
-```
-
-#### POST /api/v1/query
-Query the indexed codebase.
-
-**Request:**
-```json
-{
-  "query": "How does the login function work?",
-  "top_k": 5,
-  "use_reranking": true,
-  "filter_file": null
-}
-```
-
-**Response:**
-```json
-{
-  "query": "How does the login function work?",
-  "answer": "The login function in auth.py handles user authentication...",
-  "sources": [
-    {
-      "chunk_id": "auth_py_function_login_15",
-      "file_path": "src/auth.py",
-      "chunk_type": "function",
-      "name": "login",
-      "start_line": 15,
-      "end_line": 45,
-      "score": 0.89
-    }
-  ],
-  "retrieval_time_ms": 45.2,
-  "generation_time_ms": 1234.5
-}
-```
-
-#### GET /api/v1/stats
-Get system statistics.
-
-**Response:**
-```json
-{
-  "collection_name": "codebase",
-  "total_chunks": 312,
-  "repos_indexed": ["owner_repo"]
-}
-```
-
-#### DELETE /api/v1/collection
-Delete all indexed data and reset the system.
-
----
-
-## Configuration
-
-### config.yaml
-```yaml
-# LLM Settings
-llm:
-  provider: "groq"
-  model: "llama-3.3-70b-versatile"
-  temperature: 0.1
-  max_tokens: 4096
-
-# Embedding Settings
-embeddings:
-  model: "sentence-transformers/all-MiniLM-L6-v2"
-  dimension: 384
-
-# Chunking Settings
-chunking:
-  strategy: "ast"
-  max_chunk_size: 1500
-  chunk_overlap: 200
-
-# Retrieval Settings
-retrieval:
-  top_k: 10
-  rerank_top_k: 5
-  use_hybrid: true
-  bm25_weight: 0.3
-  dense_weight: 0.7
-
-# Supported File Extensions
-supported_extensions:
-  - ".py"
-  - ".js"
-  - ".ts"
-  - ".java"
-  - ".go"
-  - ".rs"
-  - ".md"
-
-# Ignore Patterns
-ignore_patterns:
-  - "node_modules"
-  - "__pycache__"
-  - ".git"
-  - "venv"
-```
-
----
-
-## Technical Details
-
-### AST-Based Chunking
-
-Unlike text-based chunking that splits at arbitrary character boundaries, CodeLens uses Abstract Syntax Trees to understand code structure:
-```
-Text Chunking (Problem):
-  Chunk 1: "def process(data):\n    result = []\n    for item in da"
-  Chunk 2: "ta:\n        result.append(item)\n    return result"
-  
-AST Chunking (Solution):
-  Chunk 1: Complete process() function with full context
-```
-
-Benefits:
-- Preserves 100% of function and class boundaries
-- Maintains code integrity for accurate retrieval
-- Includes relevant context (docstrings, decorators)
-- Reduces retrieval errors by 40% compared to text chunking
-
-### Hybrid Retrieval
-
-CodeLens combines two retrieval strategies:
-
-1. **Dense Retrieval** (Vector Search):
-   - Converts code to 384-dimensional embeddings
-   - Finds semantically similar chunks
-   - Understands meaning, not just keywords
-   - Weight: 70% of final score
-
-2. **Sparse Retrieval** (BM25):
-   - Traditional keyword matching
-   - Handles exact function names
-   - Fast and precise
-   - Weight: 30% of final score
-
-Results are merged using Reciprocal Rank Fusion (RRF):
-```
-RRF_score = sum(weight / (k + rank)) for each system
-```
-
-### Dependency Graph
-
-CodeLens builds a graph of file dependencies by analyzing imports:
-```
-utils.py
-    |
-    +-- imports --> config.py
-    |
-    +-- imported by --> main.py
-                   --> api.py
-```
-
-When retrieving context, 3-5 related files are automatically included to give the LLM a complete picture.
-
----
-
-## Benchmarks
-
-### Performance on Typer Repository
-
-| Metric | Value |
-|--------|-------|
-| Files Processed | 605 |
-| Chunks Created | 2,117 |
-| Ingestion Time | 50.6 seconds |
-| Avg Retrieval Time | 38ms |
-| Avg Generation Time | 1.9 seconds |
-| Memory Usage | ~500MB |
-
-### Benchmark Results by Repository Size
-
-| Repository | Files | Chunks | Index Time | Query Time |
-|------------|-------|--------|------------|------------|
-| Small (Typer) | 605 | 2,117 | 51s | 38ms |
-| Medium (Requests) | 150 | 580 | 22s | 32ms |
-| Large (Flask) | 800+ | 3,000+ | 75s | 45ms |
-
-### Sample Query Performance
-```json
-{
-  "question": "How do I create a CLI command?",
-  "retrieval_time_ms": 64.9,
-  "generation_time_ms": 2300,
-  "chunks_retrieved": 5,
-  "files_referenced": 4
-}
-```
-
-### Retrieval Quality
-
-| Query Type | Retrieval Accuracy |
-|------------|-------------------|
-| Function lookup | 92% |
-| Concept explanation | 85% |
-| Cross-file relationships | 78% |
-| Usage patterns | 81% |
-
----
-
-## Project Structure
 ```
 codelens/
-+-- src/
-|   +-- api/                 # FastAPI REST API
-|   |   +-- main.py          # App initialization
-|   |   +-- routes.py        # API endpoints
-|   |   +-- schemas.py       # Pydantic models
-|   |
-|   +-- ingestion/           # Repository loading
-|   |   +-- github_loader.py # Clone and read repos
-|   |   +-- ast_parser.py    # Python AST parsing
-|   |
-|   +-- chunking/            # Code splitting
-|   |   +-- ast_chunker.py   # AST-based chunking
-|   |   +-- base_chunker.py  # Chunk data structures
-|   |
-|   +-- embeddings/          # Vector generation
-|   |   +-- code_embedder.py # Embedding model wrapper
-|   |
-|   +-- retrieval/           # Search components
-|   |   +-- vector_store.py  # ChromaDB operations
-|   |   +-- bm25_retriever.py# Sparse retrieval
-|   |   +-- hybrid_retriever.py # Combined search
-|   |   +-- reranker.py      # Result refinement
-|   |   +-- query_expander.py# Query enhancement
-|   |
-|   +-- generation/          # LLM integration
-|   |   +-- generator.py     # Groq API wrapper
-|   |   +-- prompts.py       # Prompt templates
-|   |   +-- code_intelligence.py # Smart features
-|   |
-|   +-- evaluation/          # Testing
-|   |   +-- evaluator.py     # RAG metrics
-|   |
-|   +-- utils/               # Utilities
-|       +-- config.py        # Configuration
-|       +-- logger.py        # Logging
-|       +-- dependency_graph.py # Import analysis
-|
-+-- streamlit_app.py         # Web interface
-+-- cli.py                   # Command-line interface
-+-- api.py                   # Standalone API
-+-- benchmark.py             # Performance testing
-+-- requirements.txt         # Dependencies
-+-- config.yaml              # Configuration file
-+-- Dockerfile               # Container build
-+-- docker-compose.yml       # Container orchestration
+├── src/
+│   ├── api/            # FastAPI REST API
+│   ├── ingestion/      # GitHub loader, AST parser
+│   ├── chunking/       # AST & semantic chunkers
+│   ├── embeddings/     # Embedding model
+│   ├── retrieval/      # Vector store, BM25, hybrid search
+│   ├── generation/     # LLM integration, prompts
+│   └── utils/          # Config, logging, dependency graph
+├── streamlit_app.py    # Web UI
+├── cli.py              # CLI interface
+└── api.py              # Standalone API
 ```
 
 ---
 
-## Tech Stack
+## Roadmap
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| LLM | Groq (Llama 3.3 70B) | Response generation |
-| Embeddings | HuggingFace / MiniLM-L6-v2 | Semantic search vectors |
-| Vector Store | ChromaDB | Embedding storage and retrieval |
-| Sparse Search | BM25 (rank-bm25) | Keyword matching |
-| Code Parsing | Python AST | Structure extraction |
-| Backend | FastAPI | REST API |
-| Frontend | Streamlit | Web interface |
-| Deployment | Streamlit Cloud / Docker | Hosting |
+- [x] Hybrid retrieval (dense + sparse)
+- [x] AST-based chunking
+- [x] Dependency graph expansion
+- [ ] Multi-language AST (tree-sitter)
+- [ ] Streaming responses
+- [ ] Redis caching
+- [ ] Evaluation metrics (RAGAS)
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please follow these guidelines:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-feature`)
-3. Make your changes
-4. Run tests (`pytest tests/`)
-5. Submit a pull request
-
-### Development Setup
 ```bash
-# Install dev dependencies
-pip install -r requirements.txt
+# Setup
 pip install pytest black isort
 
-# Run tests
+# Test
 pytest tests/ -v
 
-# Format code
-black src/
-isort src/
+# Format
+black src/ && isort src/
 ```
 
 ---
 
 ## License
 
-MIT License
-
-Copyright (c) 2026 Amr
-
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+MIT © 2025 Amr
 
 ---
 
 ## Acknowledgments
 
-- [Groq](https://groq.com) for fast LLM inference
-- [ChromaDB](https://www.trychroma.com) for vector storage
-- [HuggingFace](https://huggingface.co) for embedding models
-- [Streamlit](https://streamlit.io) for the web interface
+Built with [Groq](https://groq.com), [ChromaDB](https://trychroma.com), [HuggingFace](https://huggingface.co), [Streamlit](https://streamlit.io)
