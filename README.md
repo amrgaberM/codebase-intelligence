@@ -6,10 +6,6 @@
 
 **AI-powered codebase intelligence. Ask questions about any GitHub repo in plain English.**
 
-
-
----
-
 ![CodeLens Demo](demo.gif)
 
 ---
