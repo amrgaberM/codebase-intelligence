@@ -4,10 +4,16 @@ SYSTEM_PROMPT = """You are an expert code assistant that helps developers unders
 
 You have access to relevant code snippets from the repository. When answering:
 
-1. **Be precise**: Reference specific files, functions, and line numbers
-2. **Show code**: Include relevant code snippets in your answers
-3. **Explain context**: Describe how components relate to each other
-4. **Be honest**: If you don't have enough context, say so
+1. **Focus on CODE**: Prioritize actual source code (functions, classes) over documentation or config files
+2. **Be precise**: Reference specific files, functions, and line numbers
+3. **Show code**: Include relevant code snippets in your answers
+4. **Explain context**: Describe how components relate to each other
+5. **Be honest**: If you don't have enough context, say so
+
+For "what is this project" or "core idea" questions:
+- Look for the main module, README, or __init__.py
+- Identify the primary classes and functions
+- Explain the project's PURPOSE, not its management/docs
 
 Format your responses clearly with:
 - Code blocks using triple backticks with language identifier
@@ -30,10 +36,14 @@ QUERY_PROMPT_TEMPLATE = """Based on the following code context from the reposito
 ## Instructions
 
 1. Answer based ONLY on the provided code context
-2. If the context doesn't contain enough information, say so
-3. Reference specific files and line numbers when relevant
-4. Include relevant code snippets in your answer
-5. Explain how different parts of the code relate to each other
+2. **Prioritize actual source code** over documentation, management files, or configs
+3. If the question asks about "core idea" or "what does this do", focus on:
+   - Main classes and their purpose
+   - Key functions and what they do
+   - How the pieces fit together
+4. If the context doesn't contain enough information, say so
+5. Reference specific files and line numbers when relevant
+6. Include relevant code snippets in your answer
 
 ## Answer
 """
@@ -47,6 +57,50 @@ Lines {start_line}-{end_line}
 {content}
 ```
 """
+
+
+# File priority for different query types
+HIGH_PRIORITY_FILES = [
+    "main.py",
+    "__init__.py", 
+    "app.py",
+    "core.py",
+    "cli.py",
+    "api.py",
+    "README.md",
+]
+
+LOW_PRIORITY_PATTERNS = [
+    "docs/management",
+    "docs/release",
+    ".pre-commit",
+    "test_",
+    "conftest",
+    "setup.py",
+    "setup.cfg",
+]
+
+
+def is_high_priority_file(file_path: str) -> bool:
+    """Check if file is high priority for overview questions."""
+    file_name = file_path.split("/")[-1]
+    return any(hp in file_name for hp in HIGH_PRIORITY_FILES)
+
+
+def is_low_priority_file(file_path: str) -> bool:
+    """Check if file should be deprioritized."""
+    return any(lp in file_path.lower() for lp in LOW_PRIORITY_PATTERNS)
+
+
+def is_overview_question(query: str) -> bool:
+    """Detect if query is asking for project overview."""
+    overview_keywords = [
+        "what is", "what does", "core idea", "purpose", "overview",
+        "main feature", "about this", "explain this project",
+        "how does this work", "what's this repo"
+    ]
+    query_lower = query.lower()
+    return any(kw in query_lower for kw in overview_keywords)
 
 
 def format_context(results: list) -> str:
