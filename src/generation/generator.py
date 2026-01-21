@@ -7,6 +7,11 @@ from ..utils import config, logger
 from .prompts import SYSTEM_PROMPT, build_prompt
 
 
+# Token limits for Groq free tier
+MAX_CONTEXT_TOKENS = 8000  # Leave room for response
+APPROX_CHARS_PER_TOKEN = 4
+
+
 class CodeGenerator:
     """Generate responses using LLM (Groq)."""
     
@@ -47,6 +52,33 @@ class CodeGenerator:
             self._client = Groq(api_key=api_key)
         return self._client
     
+    def _truncate_results(self, results: List[Dict[str, Any]], max_chars: int = None) -> List[Dict[str, Any]]:
+        """Truncate results to fit within token limit."""
+        max_chars = max_chars or (MAX_CONTEXT_TOKENS * APPROX_CHARS_PER_TOKEN)
+        
+        truncated = []
+        total_chars = 0
+        
+        for result in results:
+            content = result.get("content", "")
+            content_chars = len(content)
+            
+            # If this chunk would exceed limit, truncate or skip
+            if total_chars + content_chars > max_chars:
+                # If we have no results yet, truncate this one
+                if not truncated:
+                    remaining = max_chars - total_chars
+                    truncated_content = content[:remaining] + "\n... [truncated]"
+                    truncated_result = result.copy()
+                    truncated_result["content"] = truncated_content
+                    truncated.append(truncated_result)
+                break
+            
+            truncated.append(result)
+            total_chars += content_chars
+        
+        return truncated
+    
     def generate(
         self,
         query: str,
@@ -63,8 +95,14 @@ class CodeGenerator:
         Returns:
             Generated response
         """
+        # Truncate results to fit token limit
+        truncated_results = self._truncate_results(results)
+        
+        if len(truncated_results) < len(results):
+            logger.info(f"Truncated results from {len(results)} to {len(truncated_results)} to fit token limit")
+        
         # Build prompt
-        user_prompt = build_prompt(query, results)
+        user_prompt = build_prompt(query, truncated_results)
         
         # Call LLM
         response = self.client.chat.completions.create(
@@ -95,8 +133,11 @@ class CodeGenerator:
         Yields:
             Response tokens as they're generated
         """
+        # Truncate results to fit token limit
+        truncated_results = self._truncate_results(results)
+        
         # Build prompt
-        user_prompt = build_prompt(query, results)
+        user_prompt = build_prompt(query, truncated_results)
         
         # Call LLM with streaming
         stream = self.client.chat.completions.create(
@@ -123,6 +164,11 @@ class CodeGenerator:
         Returns:
             Explanation
         """
+        # Truncate code if too long
+        max_code_chars = MAX_CONTEXT_TOKENS * APPROX_CHARS_PER_TOKEN // 2
+        if len(code) > max_code_chars:
+            code = code[:max_code_chars] + "\n... [truncated]"
+        
         prompt = f"""Explain what this code does in detail:
 
 ```
