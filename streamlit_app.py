@@ -354,7 +354,7 @@ if not st.session_state.get("indexed", False):
     with col1:
         st.markdown("""
         <div class="repo-card">
-            <div class="repo-url">github.com/tiangolo/typer</div>
+            <div class="repo-url">https://github.com/tiangolo/typer</div>
             <div class="repo-label">CLI Framework</div>
         </div>
         """, unsafe_allow_html=True)
@@ -362,7 +362,7 @@ if not st.session_state.get("indexed", False):
     with col2:
         st.markdown("""
         <div class="repo-card">
-            <div class="repo-url">github.com/psf/requests</div>
+            <div class="repo-url">https://github.com/psf/requests</div>
             <div class="repo-label">HTTP Library</div>
         </div>
         """, unsafe_allow_html=True)
@@ -370,7 +370,7 @@ if not st.session_state.get("indexed", False):
     with col3:
         st.markdown("""
         <div class="repo-card">
-            <div class="repo-url">github.com/pallets/flask</div>
+            <div class="repo-url">https://github.com/pallets/flask</div>
             <div class="repo-label">Web Framework</div>
         </div>
         """, unsafe_allow_html=True)
